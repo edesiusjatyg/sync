@@ -131,7 +131,11 @@ export function TaskBoard({
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Unassigned" />
+                  <SelectValue placeholder="Unassigned">
+                    {selectedAssignee === unassignedValue || !selectedAssignee
+                      ? "Unassigned"
+                      : members.find((m) => m.userId === selectedAssignee)?.name ?? "Unassigned"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={unassignedValue}>Unassigned</SelectItem>
@@ -244,7 +248,11 @@ function EditableTaskCard({
         <Label>Assignee</Label>
         <Select value={assignedToId} onValueChange={(value) => setAssignedToId(value ?? unassignedValue)}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Unassigned" />
+            <SelectValue placeholder="Unassigned">
+              {assignedToId === unassignedValue || !assignedToId
+                ? "Unassigned"
+                : members.find((m) => m.userId === assignedToId)?.name ?? "Unassigned"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={unassignedValue}>Unassigned</SelectItem>

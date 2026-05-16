@@ -12,6 +12,7 @@ import { Modal } from "@/components/app/modal";
 import { UserCard } from "@/components/app/user-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type Candidate = ActionData<typeof getCandidates>[number];
 
@@ -141,7 +142,7 @@ export function DiscoverBoard() {
         />
       ) : (
         <>
-          <div className="relative mx-auto min-h-[42rem] max-w-4xl">
+          <div className="relative mx-auto min-h-[36rem] max-w-4xl">
             {previewCandidates
               .slice()
               .reverse()
@@ -154,7 +155,10 @@ export function DiscoverBoard() {
                 return (
                   <div
                     key={candidate.userId}
-                    className="absolute inset-x-0 top-0 origin-top transition-transform duration-200"
+                    className={cn(
+                      "absolute inset-x-0 top-0 origin-top select-none touch-none",
+                      dragStartX.current === null && "transition-transform duration-200"
+                    )}
                     style={{
                       transform: `translateY(${translateY}px) scale(${scale}) ${
                         isTopCard ? `translateX(${dragOffsetX}px) rotate(${dragOffsetX / 20}deg)` : ""
@@ -172,16 +176,29 @@ export function DiscoverBoard() {
                     onMouseMove={
                       isTopCard
                         ? (event) => {
-                            if (dragStartX.current === null) {
-                              return;
-                            }
-
+                            if (dragStartX.current === null) return;
                             setDragOffsetX(event.clientX - dragStartX.current);
                           }
                         : undefined
                     }
                     onMouseUp={isTopCard ? finishDrag : undefined}
                     onMouseLeave={isTopCard ? finishDrag : undefined}
+                    onTouchStart={
+                      isTopCard
+                        ? (event) => {
+                            dragStartX.current = event.touches[0].clientX;
+                          }
+                        : undefined
+                    }
+                    onTouchMove={
+                      isTopCard
+                        ? (event) => {
+                            if (dragStartX.current === null) return;
+                            setDragOffsetX(event.touches[0].clientX - dragStartX.current);
+                          }
+                        : undefined
+                    }
+                    onTouchEnd={isTopCard ? finishDrag : undefined}
                   >
                     <UserCard {...candidate} />
                   </div>
