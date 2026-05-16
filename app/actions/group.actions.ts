@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from "next/cache";
-import { GoalType } from "@prisma/client";
+import { GoalType, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
@@ -147,47 +147,41 @@ export async function createGroup(
       return { success: false, error: "The invited members exceed the group capacity." };
     }
 
-    if (invitedUserIds.length > 0) {
-      const users = await db.user.findMany({
-        where: {
-          id: { in: invitedUserIds },
-          isActive: true,
-        },
-        select: { id: true },
-      });
+    let group;
+    try {
+      group = await db.$transaction(async (tx) => {
+        const createdGroup = await tx.group.create({
+          data: {
+            name: parsed.name,
+            goalTypes: [...parsed.goalTypes],
+            maxMembers: parsed.maxMembers,
+            createdById: user.id,
+            members: {
+              create: [
+                {
+                  userId: user.id,
+                  role: "admin",
+                },
+                ...invitedUserIds.map((invitedUserId) => ({
+                  userId: invitedUserId,
+                  role: "member" as const,
+                })),
+              ],
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
 
-      if (users.length !== invitedUserIds.length) {
+        return createdGroup;
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
         return { success: false, error: "One or more invited users could not be found." };
       }
+      throw error;
     }
-
-    const group = await db.$transaction(async (tx) => {
-      const createdGroup = await tx.group.create({
-        data: {
-          name: parsed.name,
-          goalTypes: [...parsed.goalTypes],
-          maxMembers: parsed.maxMembers,
-          createdById: user.id,
-          members: {
-            create: [
-              {
-                userId: user.id,
-                role: "admin",
-              },
-              ...invitedUserIds.map((invitedUserId) => ({
-                userId: invitedUserId,
-                role: "member" as const,
-              })),
-            ],
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      return createdGroup;
-    });
 
     revalidatePath("/groups");
     revalidatePath("/matches");
@@ -469,60 +463,43 @@ export async function inviteMember(
 
     await assertGroupAdmin(user.id, groupId);
 
-    const [group, existingMember, invitedUser] = await Promise.all([
-      db.group.findUnique({
-        where: { id: groupId },
-        select: {
-          maxMembers: true,
+    const group = await db.group.findUnique({
+      where: { id: groupId },
+      select: {
+        maxMembers: true,
+        _count: {
+          select: { members: true },
         },
-      }),
-      db.groupMember.findUnique({
-        where: {
-          groupId_userId: {
-            groupId,
-            userId,
-          },
-        },
-        select: {
-          userId: true,
-        },
-      }),
-      db.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          isActive: true,
-        },
-      }),
-    ]);
+      },
+    });
 
     if (!group) {
       return { success: false, error: "Group not found." };
     }
 
-    if (!invitedUser?.isActive) {
-      return { success: false, error: "User not found." };
-    }
-
-    if (existingMember) {
-      return { success: false, error: "That user is already in the group." };
-    }
-
-    const memberCount = await db.groupMember.count({
-      where: { groupId },
-    });
-
-    if (memberCount >= group.maxMembers) {
+    if (group._count.members >= group.maxMembers) {
       return { success: false, error: "The group is already at full capacity." };
     }
 
-    await db.groupMember.create({
-      data: {
-        groupId,
-        userId,
-        role: "member",
-      },
-    });
+    try {
+      await db.groupMember.create({
+        data: {
+          groupId,
+          userId,
+          role: "member",
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+          return { success: false, error: "That user is already in the group." };
+        }
+        if (error.code === "P2003") {
+          return { success: false, error: "User not found." };
+        }
+      }
+      throw error;
+    }
 
     revalidatePath(`/groups/${groupId}`);
     revalidatePath("/groups");
@@ -549,18 +526,11 @@ export async function searchUsersForGroupInvite(
 
     await assertGroupAdmin(user.id, groupId);
 
-    const members = await db.groupMember.findMany({
-      where: { groupId },
-      select: { userId: true },
-    });
-
-    const excludedUserIds = new Set(members.map((member) => member.userId));
-    excludedUserIds.add(user.id);
-
     const users = await db.user.findMany({
       where: {
-        id: { notIn: [...excludedUserIds] },
+        id: { not: user.id },
         isActive: true,
+        groupMembers: { none: { groupId } },
         OR: [
           {
             email: {
@@ -617,30 +587,21 @@ export async function kickMember(
 
     await assertGroupAdmin(user.id, groupId);
 
-    const membership = await db.groupMember.findUnique({
-      where: {
-        groupId_userId: {
-          groupId,
-          userId,
+    try {
+      await db.groupMember.delete({
+        where: {
+          groupId_userId: {
+            groupId,
+            userId,
+          },
         },
-      },
-      select: {
-        userId: true,
-      },
-    });
-
-    if (!membership) {
-      return { success: false, error: "That user is not a member of this group." };
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        return { success: false, error: "That user is not a member of this group." };
+      }
+      throw error;
     }
-
-    await db.groupMember.delete({
-      where: {
-        groupId_userId: {
-          groupId,
-          userId,
-        },
-      },
-    });
 
     revalidatePath(`/groups/${groupId}`);
     revalidatePath("/groups");
@@ -667,46 +628,37 @@ export async function transferAdmin(
 
     await assertGroupAdmin(user.id, groupId);
 
-    const targetMembership = await db.groupMember.findUnique({
-      where: {
-        groupId_userId: {
-          groupId,
-          userId,
-        },
-      },
-      select: {
-        userId: true,
-      },
-    });
-
-    if (!targetMembership) {
-      return { success: false, error: "That user is not a member of this group." };
+    try {
+      await db.$transaction([
+        db.groupMember.update({
+          where: {
+            groupId_userId: {
+              groupId,
+              userId,
+            },
+          },
+          data: {
+            role: "admin",
+          },
+        }),
+        db.groupMember.update({
+          where: {
+            groupId_userId: {
+              groupId,
+              userId: user.id,
+            },
+          },
+          data: {
+            role: "member",
+          },
+        }),
+      ]);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        return { success: false, error: "That user is not a member of this group." };
+      }
+      throw error;
     }
-
-    await db.$transaction([
-      db.groupMember.update({
-        where: {
-          groupId_userId: {
-            groupId,
-            userId,
-          },
-        },
-        data: {
-          role: "admin",
-        },
-      }),
-      db.groupMember.update({
-        where: {
-          groupId_userId: {
-            groupId,
-            userId: user.id,
-          },
-        },
-        data: {
-          role: "member",
-        },
-      }),
-    ]);
 
     revalidatePath(`/groups/${groupId}`);
 

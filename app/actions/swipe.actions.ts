@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from "next/cache";
-import { MatchStatus, SwipeDirection } from "@prisma/client";
+import { MatchStatus, SwipeDirection, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
@@ -191,41 +191,25 @@ export async function recordSwipe(
       return { success: false, error: "You cannot swipe on yourself." };
     }
 
-    const targetUser = await db.user.findUnique({
-      where: { id: targetId },
-      select: {
-        id: true,
-        isActive: true,
-      },
-    });
-
-    if (!targetUser?.isActive) {
-      return { success: false, error: "User not found." };
-    }
-
-    const existingSwipe = await db.swipe.findUnique({
-      where: {
-        swiperId_targetId: {
+    try {
+      await db.swipe.create({
+        data: {
           swiperId: user.id,
           targetId,
+          direction,
         },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (existingSwipe) {
-      return { success: false, error: "You have already swiped this user." };
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+          return { success: false, error: "You have already swiped this user." };
+        }
+        if (error.code === "P2003") {
+          return { success: false, error: "User not found." };
+        }
+      }
+      throw error;
     }
-
-    await db.swipe.create({
-      data: {
-        swiperId: user.id,
-        targetId,
-        direction,
-      },
-    });
 
     if (direction === SwipeDirection.pass) {
       // Invalidate swiper's candidates cache since they passed on someone
@@ -249,6 +233,16 @@ export async function recordSwipe(
       },
       select: {
         direction: true,
+        swiper: {
+          select: {
+            profile: { select: { matchingVector: true } },
+          },
+        },
+        target: {
+          select: {
+            profile: { select: { matchingVector: true } },
+          },
+        },
       },
     });
 
@@ -265,26 +259,9 @@ export async function recordSwipe(
       };
     }
 
-    const profiles = await db.user.findMany({
-      where: {
-        id: { in: [user.id, targetId] },
-      },
-      select: {
-        id: true,
-        profile: {
-          select: {
-            matchingVector: true,
-          },
-        },
-      },
-    });
-
-    const profileByUserId = new Map(
-      profiles.map((profile) => [profile.id, profile.profile?.matchingVector ?? []]),
-    );
     const compatibilityScore = computeCompatibilityScore(
-      profileByUserId.get(user.id) ?? [],
-      profileByUserId.get(targetId) ?? [],
+      reciprocalSwipe.target.profile?.matchingVector ?? [],
+      reciprocalSwipe.swiper.profile?.matchingVector ?? [],
     );
     const pair = normalizeMatchPair(user.id, targetId);
 

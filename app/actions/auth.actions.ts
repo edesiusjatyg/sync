@@ -2,6 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { signIn } from "@/lib/auth";
@@ -24,27 +25,26 @@ export async function registerUser(
     const { name, email, password } = registerUserSchema.parse(input);
     const normalizedEmail = email.toLowerCase();
 
-    const existingUser = await db.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true },
-    });
-
-    if (existingUser) {
-      return { success: false, error: "An account with this email already exists." };
-    }
-
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const user = await db.user.create({
-      data: {
-        name,
-        email: normalizedEmail,
-        passwordHash,
-      },
-      select: {
-        id: true,
-      },
-    });
+    let user;
+    try {
+      user = await db.user.create({
+        data: {
+          name,
+          email: normalizedEmail,
+          passwordHash,
+        },
+        select: {
+          id: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        return { success: false, error: "An account with this email already exists." };
+      }
+      throw error;
+    }
 
     await signIn("credentials", {
       email: normalizedEmail,

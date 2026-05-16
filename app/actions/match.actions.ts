@@ -163,22 +163,17 @@ export async function updateMatchStatus(
     const userId = await getAuthenticatedUserId();
     const { matchId, status } = updateMatchStatusSchema.parse(input);
 
-    const match = await db.match.findUnique({
-      where: { id: matchId },
-      select: {
-        userAId: true,
-        userBId: true,
+    const updateResult = await db.match.updateMany({
+      where: {
+        id: matchId,
+        OR: [{ userAId: userId }, { userBId: userId }],
       },
-    });
-
-    if (!match || (match.userAId !== userId && match.userBId !== userId)) {
-      throw new AuthorizationError();
-    }
-
-    await db.match.update({
-      where: { id: matchId },
       data: { status },
     });
+
+    if (updateResult.count === 0) {
+      throw new AuthorizationError();
+    }
 
     revalidatePath("/matches");
 
