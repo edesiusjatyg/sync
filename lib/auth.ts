@@ -39,6 +39,7 @@ async function findUserForAuth(email: string) {
 }
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   trustHost: true,
   pages: {
     signIn: "/login",

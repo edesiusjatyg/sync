@@ -118,6 +118,10 @@ export function getActionErrorMessage(error: unknown, fallback = "Something went
 }
 
 export function logActionError(actionName: string, error: unknown) {
+  const digest = (error as any)?.digest;
+  if (typeof digest === "string" && (digest === "DYNAMIC_SERVER_USAGE" || digest.startsWith("NEXT_"))) {
+    throw error;
+  }
   console.error(`[${actionName}]`, error);
 }
 
