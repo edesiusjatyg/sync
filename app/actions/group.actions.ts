@@ -341,8 +341,6 @@ export async function getGroupDetail(
           return null;
         }
 
-        const currentMembership = group.members.find((membership) => membership.userId === user.id);
-
         return {
           groupId: group.id,
           name: group.name,
@@ -351,7 +349,6 @@ export async function getGroupDetail(
           isOpen: group.isOpen,
           createdAt: serializeDate(group.createdAt),
           createdById: group.createdById,
-          currentUserRole: currentMembership?.role ?? "member",
           members: group.members.map((member) => ({
             userId: member.user.id,
             name: member.user.name,
@@ -400,9 +397,14 @@ export async function getGroupDetail(
       return { success: false, error: "Group not found." };
     }
 
+    const currentMembership = data.members.find((member) => member.userId === user.id);
+
     return {
       success: true,
-      data,
+      data: {
+        ...data,
+        currentUserRole: currentMembership?.role ?? "member",
+      },
     };
   } catch (error) {
     logActionError("getGroupDetail", error);

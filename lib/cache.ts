@@ -46,10 +46,18 @@ export async function cached<T>(key: string, loader: () => Promise<T>, ttlSecond
   }
 
   try {
+    const t0 = Date.now();
     const cachedValue = await redis.get(key);
+    console.log(`[cache] redis.get took ${Date.now() - t0}ms`);
+
     if (cachedValue) {
-      return JSON.parse(cachedValue) as T;
+      const t1 = Date.now();
+      const parsed = JSON.parse(cachedValue) as T;
+      console.log(`[cache] JSON.parse took ${Date.now() - t1}ms`);
+      console.log(`[cache] HIT: ${key}`);
+      return parsed;
     }
+    console.log(`[cache] MISS: ${key}`);
   } catch (error) {
     console.error("[cache]", error);
   }

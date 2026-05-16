@@ -58,78 +58,78 @@ export async function getCandidates(
       return { success: true, data: [] };
     }
 
-    const currentUser = await db.user.findUnique({
-      where: { id: user.id },
-      select: {
-        swipesGiven: {
-          select: {
-            targetId: true,
-          },
-        },
-        profile: {
-          select: {
-            matchingVector: true,
-          },
-        },
-      },
-    });
-
-    if (!currentUser?.profile || currentUser.profile.matchingVector.length === 0) {
-      return { success: true, data: [] };
-    }
-
-    const excludedUserIds = [user.id, ...currentUser.swipesGiven.map((swipe) => swipe.targetId)];
-
-    const candidates = await db.user.findMany({
-      where: {
-        id: { notIn: excludedUserIds },
-        isActive: true,
-        profile: {
-          isNot: null,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true,
-        userSkills: {
-          include: {
-            skill: {
-              select: {
-                name: true,
-                category: true,
-              },
-            },
-          },
-          orderBy: {
-            rating: "desc",
-          },
-        },
-        profile: {
-          select: {
-            bio: true,
-            productiveHours: true,
-            goalTypes: true,
-            matchingVector: true,
-          },
-        },
-      },
-      take: 500,
-    });
-
-    const eligibleCandidates = candidates.filter(
-      (candidate) =>
-        candidate.profile &&
-        candidate.profile.matchingVector.length > 0 &&
-        candidate.profile.goalTypes.length > 0 &&
-        candidate.userSkills.length > 0,
-    );
-
     const data = await cached(
       CacheKey.candidates(user.id),
       async () => {
+        const currentUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: {
+            swipesGiven: {
+              select: {
+                targetId: true,
+              },
+            },
+            profile: {
+              select: {
+                matchingVector: true,
+              },
+            },
+          },
+        });
+
+        if (!currentUser?.profile || currentUser.profile.matchingVector.length === 0) {
+          return [];
+        }
+
+        const excludedUserIds = [user.id, ...currentUser.swipesGiven.map((swipe) => swipe.targetId)];
+
+        const candidates = await db.user.findMany({
+          where: {
+            id: { notIn: excludedUserIds },
+            isActive: true,
+            profile: {
+              isNot: null,
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            userSkills: {
+              include: {
+                skill: {
+                  select: {
+                    name: true,
+                    category: true,
+                  },
+                },
+              },
+              orderBy: {
+                rating: "desc",
+              },
+            },
+            profile: {
+              select: {
+                bio: true,
+                productiveHours: true,
+                goalTypes: true,
+                matchingVector: true,
+              },
+            },
+          },
+          take: 500,
+        });
+
+        const eligibleCandidates = candidates.filter(
+          (candidate) =>
+            candidate.profile &&
+            candidate.profile.matchingVector.length > 0 &&
+            candidate.profile.goalTypes.length > 0 &&
+            candidate.userSkills.length > 0,
+        );
+
         const rankedCandidates = rankCandidates(
-          { vector: currentUser.profile!.matchingVector },
+          { vector: currentUser.profile.matchingVector },
           eligibleCandidates.map((candidate) => ({
             userId: candidate.id,
             vector: candidate.profile!.matchingVector,

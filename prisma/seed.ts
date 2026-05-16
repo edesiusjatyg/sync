@@ -284,6 +284,97 @@ async function main() {
       }
     }
 
+    // Generate 30 mock users
+    for (let i = 1; i <= 30; i++) {
+      const mockId = `50000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+      const mockName = `Mock User ${i}`;
+      const mockEmail = `mock${i}@sync.dev`;
+      const mockAvatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Mock${i}`;
+      
+      const randomHours = scheduleSlots.filter(() => Math.random() > 0.5);
+      const productiveHours = randomHours.length > 0 ? randomHours : [scheduleSlots[0]];
+      
+      const randomGoals = goalOrder.filter(() => Math.random() > 0.5);
+      const goalTypes = randomGoals.length > 0 ? randomGoals : [goalOrder[0]];
+
+      const mockSkills = Array.from({ length: 5 }).map(() => ({
+        skillId: skillSeeds[Math.floor(Math.random() * skillSeeds.length)].id,
+        rating: Math.floor(Math.random() * 10) + 1,
+      })).filter((v, index, a) => a.findIndex(t => (t.skillId === v.skillId)) === index);
+
+      const matchingVector = computeMatchingVector(
+        productiveHours,
+        goalTypes,
+        mockSkills,
+      );
+
+      await tx.user.upsert({
+        where: { id: mockId },
+        update: {
+          email: mockEmail,
+          name: mockName,
+          avatarUrl: mockAvatarUrl,
+          role: "student",
+          isActive: true,
+          passwordHash: demoPasswordHash,
+        },
+        create: {
+          id: mockId,
+          email: mockEmail,
+          name: mockName,
+          avatarUrl: mockAvatarUrl,
+          role: "student",
+          isActive: true,
+          passwordHash: demoPasswordHash,
+        },
+      });
+
+      const workStyleSyncValues = Object.values(WorkStyleSync);
+      const workStyleDrivenValues = Object.values(WorkStyleDriven);
+      const workStyleRoleValues = Object.values(WorkStyleRole);
+
+      const mockWorkStyleSync = workStyleSyncValues[Math.floor(Math.random() * workStyleSyncValues.length)];
+      const mockWorkStyleDriven = workStyleDrivenValues[Math.floor(Math.random() * workStyleDrivenValues.length)];
+      const mockWorkStyleRole = workStyleRoleValues[Math.floor(Math.random() * workStyleRoleValues.length)];
+
+      await tx.profile.upsert({
+        where: { userId: mockId },
+        update: {
+          bio: `This is the bio for ${mockName}.`,
+          productiveHours: [...productiveHours],
+          workStyleSync: mockWorkStyleSync,
+          workStyleDriven: mockWorkStyleDriven,
+          workStyleRole: mockWorkStyleRole,
+          goalTypes: [...goalTypes],
+          matchingVector,
+        },
+        create: {
+          userId: mockId,
+          bio: `This is the bio for ${mockName}.`,
+          productiveHours: [...productiveHours],
+          workStyleSync: mockWorkStyleSync,
+          workStyleDriven: mockWorkStyleDriven,
+          workStyleRole: mockWorkStyleRole,
+          goalTypes: [...goalTypes],
+          matchingVector,
+        },
+      });
+
+      await tx.userSkill.deleteMany({
+        where: { userId: mockId },
+      });
+
+      for (const userSkill of mockSkills) {
+        await tx.userSkill.create({
+          data: {
+            userId: mockId,
+            skillId: userSkill.skillId,
+            rating: userSkill.rating,
+          },
+        });
+      }
+    }
+
     await tx.swipe.upsert({
       where: {
         swiperId_targetId: {
@@ -511,7 +602,7 @@ async function main() {
     });
   }, {
     maxWait: 10000,
-    timeout: 30000,
+    timeout: 120000,
   });
 
   console.log("Seeded Sync development data.");
