@@ -32,12 +32,16 @@ export const CacheKey = {
   candidates: (userId: string) => `sync:candidates:${userId}`,
   matches: (userId: string) => `sync:matches:${userId}`,
   groupDetail: (groupId: string) => `sync:group:${groupId}`,
+  groupTasks: (groupId: string) => `sync:tasks:${groupId}`,
+  groupSessions: (groupId: string) => `sync:sessions:${groupId}`,
 } as const;
 
 export const TTL = {
   candidates: 60 * 5, // 5 minutes — changes on new swipe or new user
   matches: 60 * 5, // 5 minutes — changes on new mutual swipe
   groupDetail: 60 * 2, // 2 minutes — changes on member/task mutations
+  groupTasks: 60, // 1 minute — changes on task create/update/delete
+  groupSessions: 60, // 1 minute — changes on session log/score
 } as const;
 
 export async function cached<T>(key: string, loader: () => Promise<T>, ttlSeconds: number): Promise<T> {

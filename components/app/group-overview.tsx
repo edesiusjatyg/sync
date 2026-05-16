@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MailSearchIcon, UsersIcon } from "lucide-react";
@@ -14,6 +14,8 @@ import {
   transferAdmin,
   updateGroupInfo,
 } from "@/app/actions/group.actions";
+import { getGroupSessions } from "@/app/actions/session.actions";
+import { getGroupTasks } from "@/app/actions/task.actions";
 import type { ActionData } from "@/components/app/action-data";
 import { EmptyState } from "@/components/app/empty-state";
 import { GroupRouteNav } from "@/components/app/group-route-nav";
@@ -58,6 +60,14 @@ export function GroupOverview({
   const isAdmin = group?.currentUserRole === "admin";
 
   const memberCount = group?.members.length ?? 0;
+
+  useEffect(() => {
+    if (group?.groupId) {
+      // Pre-warm the cache for tasks and sessions for better UX when navigating tabs
+      void getGroupTasks({ groupId: group.groupId }).catch((error) => console.error("Task cache pre-warming failed:", error));
+      void getGroupSessions({ groupId: group.groupId }).catch((error) => console.error("Session cache pre-warming failed:", error));
+    }
+  }, [group?.groupId]);
 
   async function handleSaveGroupInfo() {
     if (!group) {

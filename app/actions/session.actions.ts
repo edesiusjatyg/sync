@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { CacheKey, TTL, cached, invalidate } from "@/lib/cache";
 import {
   assertGroupMember,
   AuthorizationError,
@@ -87,6 +88,8 @@ export async function logSession(
     revalidatePath(`/groups/${parsed.groupId}`);
     revalidatePath(`/groups/${parsed.groupId}/sessions`);
 
+    await invalidate(CacheKey.groupSessions(parsed.groupId), CacheKey.groupDetail(parsed.groupId));
+
     return {
       success: true,
       data: {
@@ -131,6 +134,8 @@ export async function submitEffectivenessScore(
     revalidatePath(`/groups/${session.groupId}`);
     revalidatePath(`/groups/${session.groupId}/sessions`);
 
+    await invalidate(CacheKey.groupSessions(session.groupId), CacheKey.groupDetail(session.groupId));
+
     return { success: true };
   } catch (error) {
     logActionError("submitEffectivenessScore", error);
@@ -150,42 +155,50 @@ export async function getGroupSessions(
 
     await assertGroupMember(user.id, groupId);
 
-    const sessions = await db.studySession.findMany({
-      where: { groupId },
-      orderBy: {
-        startedAt: "desc",
-      },
-      take: limit,
-      include: {
-        loggedBy: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
+    const data = await cached(
+      CacheKey.groupSessions(groupId),
+      async () => {
+        const sessions = await db.studySession.findMany({
+          where: { groupId },
+          orderBy: {
+            startedAt: "desc",
           },
-        },
+          take: limit,
+          include: {
+            loggedBy: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        });
+
+        return sessions.map((session) => ({
+          sessionId: session.id,
+          groupId: session.groupId,
+          startedAt: serializeDate(session.startedAt),
+          endedAt: serializeDate(session.endedAt),
+          notes: session.notes,
+          effectivenessScore: session.effectivenessScore,
+          durationMinutes: Math.max(
+            0,
+            Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 60000),
+          ),
+          logger: {
+            userId: session.loggedBy.id,
+            name: session.loggedBy.name,
+            avatarUrl: session.loggedBy.avatarUrl,
+          },
+        }));
       },
-    });
+      TTL.groupSessions
+    );
 
     return {
       success: true,
-      data: sessions.map((session) => ({
-        sessionId: session.id,
-        groupId: session.groupId,
-        startedAt: serializeDate(session.startedAt),
-        endedAt: serializeDate(session.endedAt),
-        notes: session.notes,
-        effectivenessScore: session.effectivenessScore,
-        durationMinutes: Math.max(
-          0,
-          Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 60000),
-        ),
-        logger: {
-          userId: session.loggedBy.id,
-          name: session.loggedBy.name,
-          avatarUrl: session.loggedBy.avatarUrl,
-        },
-      })),
+      data,
     };
   } catch (error) {
     logActionError("getGroupSessions", error);

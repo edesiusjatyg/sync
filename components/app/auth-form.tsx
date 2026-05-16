@@ -7,6 +7,8 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getMyMatches } from "@/app/actions/match.actions";
+import { getCandidates } from "@/app/actions/swipe.actions";
 import { registerUser } from "@/app/actions/auth.actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -83,6 +85,12 @@ export function AuthForm({ mode }: AuthFormProps) {
           setFormError("Incorrect email or password.");
           return;
         }
+
+        // Pre-warm the cache for better UX. Fire and forget so we don't block the redirect.
+        // We wait for getCandidates to finish before getMyMatches as requested.
+        getCandidates()
+          .then(() => getMyMatches())
+          .catch((error) => console.error("Cache pre-warming failed:", error));
 
         router.push("/discover");
         router.refresh();

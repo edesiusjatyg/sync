@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { CacheKey, TTL, cached, invalidate } from "@/lib/cache";
 import {
   assertGroupAdmin,
   assertGroupMember,
@@ -129,6 +130,8 @@ export async function createTask(
     revalidatePath(`/groups/${parsed.groupId}`);
     revalidatePath(`/groups/${parsed.groupId}/tasks`);
 
+    await invalidate(CacheKey.groupTasks(parsed.groupId), CacheKey.groupDetail(parsed.groupId));
+
     return {
       success: true,
       data: {
@@ -192,6 +195,8 @@ export async function updateTask(
     revalidatePath(`/groups/${task.groupId}`);
     revalidatePath(`/groups/${task.groupId}/tasks`);
 
+    await invalidate(CacheKey.groupTasks(task.groupId), CacheKey.groupDetail(task.groupId));
+
     return { success: true };
   } catch (error) {
     logActionError("updateTask", error);
@@ -234,6 +239,8 @@ export async function deleteTask(
     revalidatePath(`/groups/${task.groupId}`);
     revalidatePath(`/groups/${task.groupId}/tasks`);
 
+    await invalidate(CacheKey.groupTasks(task.groupId), CacheKey.groupDetail(task.groupId));
+
     return { success: true };
   } catch (error) {
     logActionError("deleteTask", error);
@@ -253,40 +260,48 @@ export async function getGroupTasks(
 
     await assertGroupMember(user.id, groupId);
 
-    const tasks = await db.task.findMany({
-      where: { groupId },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        assignedTo: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
+    const data = await cached(
+      CacheKey.groupTasks(groupId),
+      async () => {
+        const tasks = await db.task.findMany({
+          where: { groupId },
+          orderBy: {
+            createdAt: "desc",
           },
-        },
+          include: {
+            assignedTo: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        });
+
+        return tasks.map((task) => ({
+          taskId: task.id,
+          groupId: task.groupId,
+          title: task.title,
+          status: task.status,
+          deadline: serializeNullableDate(task.deadline),
+          createdAt: serializeDate(task.createdAt),
+          createdById: task.createdById,
+          assignedTo: task.assignedTo
+            ? {
+                userId: task.assignedTo.id,
+                name: task.assignedTo.name,
+                avatarUrl: task.assignedTo.avatarUrl,
+              }
+            : null,
+        }));
       },
-    });
+      TTL.groupTasks
+    );
 
     return {
       success: true,
-      data: tasks.map((task) => ({
-        taskId: task.id,
-        groupId: task.groupId,
-        title: task.title,
-        status: task.status,
-        deadline: serializeNullableDate(task.deadline),
-        createdAt: serializeDate(task.createdAt),
-        createdById: task.createdById,
-        assignedTo: task.assignedTo
-          ? {
-              userId: task.assignedTo.id,
-              name: task.assignedTo.name,
-              avatarUrl: task.assignedTo.avatarUrl,
-            }
-          : null,
-      })),
+      data,
     };
   } catch (error) {
     logActionError("getGroupTasks", error);
