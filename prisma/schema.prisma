@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  student
+  admin
+}
+
+enum WorkStyleSync {
+  async
+  sync
+}
+
+enum WorkStyleDriven {
+  deadline
+  milestone
+}
+
+enum WorkStyleRole {
+  leader
+  executor
+  flexible
+}
+
+enum SwipeDirection {
+  like
+  pass
+}
+
+enum MatchStatus {
+  pending
+  accepted
+  declined
+}
+
+enum GroupMemberRole {
+  admin
+  member
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum GoalType {
+  tugas
+  side_project
+  kompetisi
+  riset
+  lainnya
+}
+
+model User {
+  id                   String         @id @default(uuid())
+  email                String         @unique
+  passwordHash         String
+  name                 String
+  avatarUrl            String?
+  role                 UserRole       @default(student)
+  isActive             Boolean        @default(true)
+  createdAt            DateTime       @default(now())
+  profile              Profile?
+  userSkills           UserSkill[]
+  swipesGiven          Swipe[]        @relation("SwiperRelation")
+  swipesReceived       Swipe[]        @relation("TargetRelation")
+  matchesAsA           Match[]        @relation("UserARelation")
+  matchesAsB           Match[]        @relation("UserBRelation")
+  groupsCreated        Group[]        @relation("GroupCreatorRelation")
+  groupMembers         GroupMember[]
+  tasksCreated         Task[]         @relation("TaskCreatorRelation")
+  tasksAssigned        Task[]         @relation("TaskAssigneeRelation")
+  sessionsLogged       StudySession[]
+  endorsementsGiven    Endorsement[]  @relation("EndorsementFromRelation")
+  endorsementsReceived Endorsement[]  @relation("EndorsementToRelation")
+}
+
+model Profile {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  bio             String?
+  productiveHours Int[]
+  workStyleSync   WorkStyleSync   @default(async)
+  workStyleDriven WorkStyleDriven @default(milestone)
+  workStyleRole   WorkStyleRole   @default(flexible)
+  goalTypes       GoalType[]
+  matchingVector  Float[]
+  updatedAt       DateTime        @updatedAt
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  category     String
+  userSkills   UserSkill[]
+  endorsements Endorsement[]
+}
+
+model UserSkill {
+  userId  String
+  skillId String
+  rating  Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+model Swipe {
+  id        String         @id @default(uuid())
+  swiperId  String
+  targetId  String
+  direction SwipeDirection
+  createdAt DateTime       @default(now())
+  swiper    User           @relation("SwiperRelation", fields: [swiperId], references: [id], onDelete: Cascade)
+  target    User           @relation("TargetRelation", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, targetId])
+  @@index([swiperId])
+  @@index([targetId])
+}
+
+model Match {
+  id                 String      @id @default(uuid())
+  userAId            String
+  userBId            String
+  compatibilityScore Float
+  status             MatchStatus @default(pending)
+  createdAt          DateTime    @default(now())
+  userA              User        @relation("UserARelation", fields: [userAId], references: [id], onDelete: Cascade)
+  userB              User        @relation("UserBRelation", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Group {
+  id           String         @id @default(uuid())
+  name         String
+  goalTypes    GoalType[]
+  maxMembers   Int            @default(5)
+  isOpen       Boolean        @default(true)
+  createdById  String
+  createdAt    DateTime       @default(now())
+  createdBy    User           @relation("GroupCreatorRelation", fields: [createdById], references: [id], onDelete: Restrict)
+  members      GroupMember[]
+  tasks        Task[]
+  sessions     StudySession[]
+  endorsements Endorsement[]
+}
+
+model GroupMember {
+  groupId  String
+  userId   String
+  role     GroupMemberRole @default(member)
+  joinedAt DateTime        @default(now())
+  group    Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+}
+
+model Task {
+  id           String     @id @default(uuid())
+  groupId      String
+  createdById  String
+  assignedToId String?
+  title        String
+  status       TaskStatus @default(todo)
+  deadline     DateTime?
+  createdAt    DateTime   @default(now())
+  group        Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy    User       @relation("TaskCreatorRelation", fields: [createdById], references: [id], onDelete: Restrict)
+  assignedTo   User?      @relation("TaskAssigneeRelation", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([groupId])
+}
+
+model StudySession {
+  id                 String   @id @default(uuid())
+  groupId            String
+  loggedById         String
+  startedAt          DateTime
+  endedAt            DateTime
+  notes              String?
+  effectivenessScore Int?
+  group              Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  loggedBy           User     @relation(fields: [loggedById], references: [id], onDelete: Restrict)
+
+  @@index([groupId])
+}
+
+model Endorsement {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  skillId    String
+  groupId    String
+  createdAt  DateTime @default(now())
+  fromUser   User     @relation("EndorsementFromRelation", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("EndorsementToRelation", fields: [toUserId], references: [id], onDelete: Cascade)
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId, skillId, groupId])
+  @@index([toUserId])
+}
