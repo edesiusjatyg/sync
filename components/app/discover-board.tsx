@@ -149,8 +149,8 @@ export function DiscoverBoard() {
               .map((candidate, reverseIndex) => {
                 const visualIndex = previewCandidates.length - reverseIndex - 1;
                 const isTopCard = visualIndex === 0;
-                const translateY = reverseIndex * 18;
-                const scale = 1 - reverseIndex * 0.03;
+                const translateY = visualIndex * 18;
+                const scale = 1 - visualIndex * 0.03;
 
                 return (
                   <div
@@ -163,8 +163,8 @@ export function DiscoverBoard() {
                       transform: `translateY(${translateY}px) scale(${scale}) ${
                         isTopCard ? `translateX(${dragOffsetX}px) rotate(${dragOffsetX / 20}deg)` : ""
                       }`,
-                      zIndex: 10 + visualIndex,
-                      opacity: isTopCard ? 1 : 0.88 - reverseIndex * 0.08,
+                      zIndex: 20 - visualIndex,
+                      opacity: 1,
                     }}
                     onPointerDown={
                       isTopCard
