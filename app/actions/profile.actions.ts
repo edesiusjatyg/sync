@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 
 import { auth, unstable_update } from "@/lib/auth";
+import { invalidate, CacheKey } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { computeMatchingVector } from "@/lib/matching";
 import {
@@ -218,6 +219,9 @@ export async function saveOnboardingProfile(
     revalidatePath("/onboarding");
     revalidatePath("/discover");
 
+    // Invalidate user's candidates list cache since their own vector changed
+    await invalidate(CacheKey.candidates(userId));
+
     return { success: true };
   } catch (error) {
     logActionError("saveOnboardingProfile", error);
@@ -355,6 +359,11 @@ export async function updateProfile(
 
     revalidatePath("/onboarding");
     revalidatePath("/discover");
+
+    // Invalidate user's candidates list cache since their own vector changed
+    // Note: We do not invalidate all other users' candidate caches that might include this user.
+    // That would be an expensive O(N) operation and the 5-minute TTL handles this naturally.
+    await invalidate(CacheKey.candidates(userId));
 
     return { success: true };
   } catch (error) {

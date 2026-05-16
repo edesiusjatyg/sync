@@ -2,7 +2,7 @@ import { db } from './db';
 import { UserRole, SwipeDirection, MatchStatus, GroupMemberRole, TaskStatus, GoalType, WorkStyleSync, WorkStyleDriven, WorkStyleRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-export async function createUser(overrides: Partial<Parameters<typeof db.user.create>[0]['data']> = {}) {
+export async function createUser(overrides: any = {}) {
   const email = overrides.email || `test-${Math.random().toString(36).substring(7)}@test.com`;
   return db.user.create({
     data: {
@@ -16,7 +16,7 @@ export async function createUser(overrides: Partial<Parameters<typeof db.user.cr
   });
 }
 
-export async function createSkill(overrides: Partial<Parameters<typeof db.skill.create>[0]['data']> = {}) {
+export async function createSkill(overrides: any = {}) {
   const name = overrides.name || `Skill-${Math.random().toString(36).substring(7)}`;
   return db.skill.create({
     data: {
@@ -27,7 +27,7 @@ export async function createSkill(overrides: Partial<Parameters<typeof db.skill.
   });
 }
 
-export async function createProfile(userId: string, overrides: Partial<Parameters<typeof db.profile.create>[0]['data']> = {}) {
+export async function createProfile(userId: string, overrides: any = {}) {
   return db.profile.create({
     data: {
       userId,
@@ -42,7 +42,7 @@ export async function createProfile(userId: string, overrides: Partial<Parameter
   });
 }
 
-export async function createGroup(createdById: string, overrides: Partial<Parameters<typeof db.group.create>[0]['data']> = {}) {
+export async function createGroup(createdById: string, overrides: any = {}) {
   const name = overrides.name || `Group-${Math.random().toString(36).substring(7)}`;
   return db.group.create({
     data: {
@@ -56,7 +56,7 @@ export async function createGroup(createdById: string, overrides: Partial<Parame
   });
 }
 
-export async function createMatch(userAId: string, userBId: string, overrides: Partial<Parameters<typeof db.match.create>[0]['data']> = {}) {
+export async function createMatch(userAId: string, userBId: string, overrides: any = {}) {
   return db.match.create({
     data: {
       userAId,

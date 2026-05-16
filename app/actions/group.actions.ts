@@ -5,6 +5,7 @@ import { GoalType } from "@prisma/client";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { cached, invalidate, CacheKey, TTL } from "@/lib/cache";
 import { db } from "@/lib/db";
 import {
   assertGroupAdmin,
@@ -191,6 +192,9 @@ export async function createGroup(
     revalidatePath("/groups");
     revalidatePath("/matches");
 
+    // Invalidate the new group detail cache just to be safe
+    await invalidate(CacheKey.groupDetail(group.id));
+
     return {
       success: true,
       data: {
@@ -267,126 +271,138 @@ export async function getGroupDetail(
 
     await assertGroupMember(user.id, groupId);
 
-    const group = await db.group.findUnique({
-      where: { id: groupId },
-      include: {
-        members: {
-          orderBy: {
-            joinedAt: "asc",
-          },
+    const data = await cached(
+      CacheKey.groupDetail(groupId),
+      async () => {
+        const group = await db.group.findUnique({
+          where: { id: groupId },
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-                userSkills: {
-                  include: {
-                    skill: {
-                      select: {
-                        name: true,
-                        category: true,
+            members: {
+              orderBy: {
+                joinedAt: "asc",
+              },
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    avatarUrl: true,
+                    userSkills: {
+                      include: {
+                        skill: {
+                          select: {
+                            name: true,
+                            category: true,
+                          },
+                        },
+                      },
+                      orderBy: {
+                        rating: "desc",
                       },
                     },
                   },
-                  orderBy: {
-                    rating: "desc",
+                },
+              },
+            },
+            tasks: {
+              include: {
+                assignedTo: {
+                  select: {
+                    id: true,
+                    name: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+            sessions: {
+              take: 5,
+              orderBy: {
+                startedAt: "desc",
+              },
+              include: {
+                loggedBy: {
+                  select: {
+                    id: true,
+                    name: true,
+                    avatarUrl: true,
                   },
                 },
               },
             },
           },
-        },
-        tasks: {
-          include: {
-            assignedTo: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-        sessions: {
-          take: 5,
-          orderBy: {
-            startedAt: "desc",
-          },
-          include: {
-            loggedBy: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-    });
+        });
 
-    if (!group) {
+        if (!group) {
+          return null;
+        }
+
+        const currentMembership = group.members.find((membership) => membership.userId === user.id);
+
+        return {
+          groupId: group.id,
+          name: group.name,
+          goalTypes: [...group.goalTypes],
+          maxMembers: group.maxMembers,
+          isOpen: group.isOpen,
+          createdAt: serializeDate(group.createdAt),
+          createdById: group.createdById,
+          currentUserRole: currentMembership?.role ?? "member",
+          members: group.members.map((member) => ({
+            userId: member.user.id,
+            name: member.user.name,
+            email: member.user.email,
+            avatarUrl: member.user.avatarUrl,
+            role: member.role,
+            joinedAt: serializeDate(member.joinedAt),
+            skills: member.user.userSkills.map((skill) => ({
+              name: skill.skill.name,
+              category: skill.skill.category,
+              rating: skill.rating,
+            })),
+          })),
+          tasks: group.tasks.map((task) => ({
+            taskId: task.id,
+            title: task.title,
+            status: task.status,
+            deadline: serializeNullableDate(task.deadline),
+            createdAt: serializeDate(task.createdAt),
+            assignedTo: task.assignedTo
+              ? {
+                  userId: task.assignedTo.id,
+                  name: task.assignedTo.name,
+                  avatarUrl: task.assignedTo.avatarUrl,
+                }
+              : null,
+          })),
+          recentSessions: group.sessions.map((session) => ({
+            sessionId: session.id,
+            startedAt: serializeDate(session.startedAt),
+            endedAt: serializeDate(session.endedAt),
+            notes: session.notes,
+            effectivenessScore: session.effectivenessScore,
+            logger: {
+              userId: session.loggedBy.id,
+              name: session.loggedBy.name,
+              avatarUrl: session.loggedBy.avatarUrl,
+            },
+          })),
+        };
+      },
+      TTL.groupDetail
+    );
+
+    if (!data) {
       return { success: false, error: "Group not found." };
     }
 
-    const currentMembership = group.members.find((membership) => membership.userId === user.id);
-
     return {
       success: true,
-      data: {
-        groupId: group.id,
-        name: group.name,
-        goalTypes: [...group.goalTypes],
-        maxMembers: group.maxMembers,
-        isOpen: group.isOpen,
-        createdAt: serializeDate(group.createdAt),
-        createdById: group.createdById,
-        currentUserRole: currentMembership?.role ?? "member",
-        members: group.members.map((member) => ({
-          userId: member.user.id,
-          name: member.user.name,
-          email: member.user.email,
-          avatarUrl: member.user.avatarUrl,
-          role: member.role,
-          joinedAt: serializeDate(member.joinedAt),
-          skills: member.user.userSkills.map((skill) => ({
-            name: skill.skill.name,
-            category: skill.skill.category,
-            rating: skill.rating,
-          })),
-        })),
-        tasks: group.tasks.map((task) => ({
-          taskId: task.id,
-          title: task.title,
-          status: task.status,
-          deadline: serializeNullableDate(task.deadline),
-          createdAt: serializeDate(task.createdAt),
-          assignedTo: task.assignedTo
-            ? {
-                userId: task.assignedTo.id,
-                name: task.assignedTo.name,
-                avatarUrl: task.assignedTo.avatarUrl,
-              }
-            : null,
-        })),
-        recentSessions: group.sessions.map((session) => ({
-          sessionId: session.id,
-          startedAt: serializeDate(session.startedAt),
-          endedAt: serializeDate(session.endedAt),
-          notes: session.notes,
-          effectivenessScore: session.effectivenessScore,
-          logger: {
-            userId: session.loggedBy.id,
-            name: session.loggedBy.name,
-            avatarUrl: session.loggedBy.avatarUrl,
-          },
-        })),
-      },
+      data,
     };
   } catch (error) {
     logActionError("getGroupDetail", error);
@@ -428,6 +444,9 @@ export async function updateGroupInfo(
 
     revalidatePath("/groups");
     revalidatePath(`/groups/${parsed.groupId}`);
+
+    // Invalidate the group cache due to group info change
+    await invalidate(CacheKey.groupDetail(parsed.groupId));
 
     return { success: true };
   } catch (error) {
@@ -505,6 +524,9 @@ export async function inviteMember(
 
     revalidatePath(`/groups/${groupId}`);
     revalidatePath("/groups");
+
+    // Invalidate cache due to new member
+    await invalidate(CacheKey.groupDetail(groupId));
 
     return { success: true };
   } catch (error) {
@@ -621,6 +643,9 @@ export async function kickMember(
     revalidatePath(`/groups/${groupId}`);
     revalidatePath("/groups");
 
+    // Invalidate cache due to kicked member
+    await invalidate(CacheKey.groupDetail(groupId));
+
     return { success: true };
   } catch (error) {
     logActionError("kickMember", error);
@@ -683,6 +708,9 @@ export async function transferAdmin(
 
     revalidatePath(`/groups/${groupId}`);
 
+    // Invalidate cache due to admin transfer (roles changed)
+    await invalidate(CacheKey.groupDetail(groupId));
+
     return { success: true };
   } catch (error) {
     logActionError("transferAdmin", error);
@@ -744,6 +772,9 @@ export async function leaveGroup(
 
     revalidatePath("/groups");
     revalidatePath(`/groups/${groupId}`);
+
+    // Invalidate cache due to member leaving
+    await invalidate(CacheKey.groupDetail(groupId));
 
     return { success: true };
   } catch (error) {

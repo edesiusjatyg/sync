@@ -5,6 +5,7 @@ import { MatchStatus, SwipeDirection } from "@prisma/client";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { cached, invalidate, CacheKey, TTL } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { rankCandidates, computeCompatibilityScore } from "@/lib/matching";
 import {
@@ -124,43 +125,51 @@ export async function getCandidates(
         candidate.userSkills.length > 0,
     );
 
-    const rankedCandidates = rankCandidates(
-      { vector: currentUser.profile.matchingVector },
-      eligibleCandidates.map((candidate) => ({
-        userId: candidate.id,
-        vector: candidate.profile!.matchingVector,
-      })),
-    ).slice(0, limit);
+    const data = await cached(
+      CacheKey.candidates(user.id),
+      async () => {
+        const rankedCandidates = rankCandidates(
+          { vector: currentUser.profile!.matchingVector },
+          eligibleCandidates.map((candidate) => ({
+            userId: candidate.id,
+            vector: candidate.profile!.matchingVector,
+          })),
+        ).slice(0, limit);
 
-    const scoreByUserId = new Map(rankedCandidates.map((candidate) => [candidate.userId, candidate.score]));
-    const candidateById = new Map(eligibleCandidates.map((candidate) => [candidate.id, candidate]));
+        const scoreByUserId = new Map(rankedCandidates.map((candidate) => [candidate.userId, candidate.score]));
+        const candidateById = new Map(eligibleCandidates.map((candidate) => [candidate.id, candidate]));
+
+        return rankedCandidates.flatMap((candidate) => {
+          const userRecord = candidateById.get(candidate.userId);
+
+          if (!userRecord?.profile) {
+            return [];
+          }
+
+          return [
+            {
+              userId: userRecord.id,
+              name: userRecord.name,
+              avatarUrl: userRecord.avatarUrl,
+              bio: userRecord.profile.bio,
+              skills: userRecord.userSkills.map((skill) => ({
+                name: skill.skill.name,
+                category: skill.skill.category,
+                rating: skill.rating,
+              })),
+              productiveHours: [...userRecord.profile.productiveHours],
+              goalTypes: userRecord.profile.goalTypes.map((goalType) => goalType.toString()),
+              compatibilityScore: scoreByUserId.get(userRecord.id) ?? 0,
+            } satisfies CandidateCard,
+          ];
+        });
+      },
+      TTL.candidates
+    );
 
     return {
       success: true,
-      data: rankedCandidates.flatMap((candidate) => {
-        const userRecord = candidateById.get(candidate.userId);
-
-        if (!userRecord?.profile) {
-          return [];
-        }
-
-        return [
-          {
-            userId: userRecord.id,
-            name: userRecord.name,
-            avatarUrl: userRecord.avatarUrl,
-            bio: userRecord.profile.bio,
-            skills: userRecord.userSkills.map((skill) => ({
-              name: skill.skill.name,
-              category: skill.skill.category,
-              rating: skill.rating,
-            })),
-            productiveHours: [...userRecord.profile.productiveHours],
-            goalTypes: userRecord.profile.goalTypes.map((goalType) => goalType.toString()),
-            compatibilityScore: scoreByUserId.get(userRecord.id) ?? 0,
-          } satisfies CandidateCard,
-        ];
-      }),
+      data,
     };
   } catch (error) {
     logActionError("getCandidates", error);
@@ -219,6 +228,9 @@ export async function recordSwipe(
     });
 
     if (direction === SwipeDirection.pass) {
+      // Invalidate swiper's candidates cache since they passed on someone
+      await invalidate(CacheKey.candidates(user.id));
+      
       revalidatePath("/discover");
       return {
         success: true,
@@ -241,6 +253,9 @@ export async function recordSwipe(
     });
 
     if (!reciprocalSwipe || reciprocalSwipe.direction !== SwipeDirection.like) {
+      // Invalidate swiper's candidates cache since they liked someone
+      await invalidate(CacheKey.candidates(user.id));
+      
       revalidatePath("/discover");
       return {
         success: true,
@@ -290,6 +305,13 @@ export async function recordSwipe(
         id: true,
       },
     });
+
+    // Invalidate caches due to new mutual match
+    await invalidate(
+      CacheKey.candidates(user.id),
+      CacheKey.matches(user.id),
+      CacheKey.matches(targetId)
+    );
 
     revalidatePath("/discover");
     revalidatePath("/matches");

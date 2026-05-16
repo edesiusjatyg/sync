@@ -5,6 +5,7 @@ import { MatchStatus } from "@prisma/client";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth";
+import { cached, CacheKey, TTL } from "@/lib/cache";
 import { db } from "@/lib/db";
 import {
   AuthorizationError,
@@ -52,91 +53,99 @@ export async function getMyMatches(): Promise<DataActionResult<MatchWithPeer[]>>
   try {
     const userId = await getAuthenticatedUserId();
 
-    const matches = await db.match.findMany({
-      where: {
-        status: MatchStatus.accepted,
-        OR: [{ userAId: userId }, { userBId: userId }],
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        userA: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            profile: {
+    const data = await cached(
+      CacheKey.matches(userId),
+      async () => {
+        const matches = await db.match.findMany({
+          where: {
+            status: MatchStatus.accepted,
+            OR: [{ userAId: userId }, { userBId: userId }],
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            userA: {
               select: {
-                bio: true,
-              },
-            },
-            userSkills: {
-              include: {
-                skill: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+                profile: {
                   select: {
-                    name: true,
-                    category: true,
+                    bio: true,
+                  },
+                },
+                userSkills: {
+                  include: {
+                    skill: {
+                      select: {
+                        name: true,
+                        category: true,
+                      },
+                    },
+                  },
+                  orderBy: {
+                    rating: "desc",
                   },
                 },
               },
-              orderBy: {
-                rating: "desc",
-              },
             },
-          },
-        },
-        userB: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            profile: {
+            userB: {
               select: {
-                bio: true,
-              },
-            },
-            userSkills: {
-              include: {
-                skill: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+                profile: {
                   select: {
-                    name: true,
-                    category: true,
+                    bio: true,
+                  },
+                },
+                userSkills: {
+                  include: {
+                    skill: {
+                      select: {
+                        name: true,
+                        category: true,
+                      },
+                    },
+                  },
+                  orderBy: {
+                    rating: "desc",
                   },
                 },
               },
-              orderBy: {
-                rating: "desc",
-              },
             },
           },
-        },
+        });
+
+        return matches.map((match) => {
+          const peer = match.userAId === userId ? match.userB : match.userA;
+
+          return {
+            matchId: match.id,
+            compatibilityScore: match.compatibilityScore,
+            status: match.status,
+            createdAt: match.createdAt.toISOString(),
+            peer: {
+              userId: peer.id,
+              name: peer.name,
+              avatarUrl: peer.avatarUrl,
+              bio: peer.profile?.bio ?? null,
+              skills: peer.userSkills.map((skill) => ({
+                name: skill.skill.name,
+                category: skill.skill.category,
+                rating: skill.rating,
+              })),
+            },
+          };
+        });
       },
-    });
+      TTL.matches
+    );
 
     return {
       success: true,
-      data: matches.map((match) => {
-        const peer = match.userAId === userId ? match.userB : match.userA;
-
-        return {
-          matchId: match.id,
-          compatibilityScore: match.compatibilityScore,
-          status: match.status,
-          createdAt: match.createdAt.toISOString(),
-          peer: {
-            userId: peer.id,
-            name: peer.name,
-            avatarUrl: peer.avatarUrl,
-            bio: peer.profile?.bio ?? null,
-            skills: peer.userSkills.map((skill) => ({
-              name: skill.skill.name,
-              category: skill.skill.category,
-              rating: skill.rating,
-            })),
-          },
-        };
-      }),
+      data,
     };
   } catch (error) {
     logActionError("getMyMatches", error);
