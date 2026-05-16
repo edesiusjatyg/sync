@@ -84,24 +84,28 @@ export function DiscoverBoard() {
 
     setError(null);
 
+    const swipedCandidate = activeCandidate;
+
+    // Optimistically remove the candidate from the stack
+    setCandidates((currentCandidates) => currentCandidates.slice(1));
+    setDragOffsetX(0);
+
     startTransition(async () => {
       const result = await recordSwipe({
-        targetId: activeCandidate.userId,
+        targetId: swipedCandidate.userId,
         direction,
       });
 
       if (!result.success) {
         setError(result.error);
+        // Revert the optimistic update on error
+        setCandidates((currentCandidates) => [swipedCandidate, ...currentCandidates]);
         return;
       }
 
-      setCandidates((currentCandidates) => currentCandidates.slice(1));
-
       if (result.data.matched) {
-        setActiveMatchName(activeCandidate.name);
+        setActiveMatchName(swipedCandidate.name);
       }
-
-      setDragOffsetX(0);
     });
   }
 
@@ -206,11 +210,11 @@ export function DiscoverBoard() {
           </div>
 
           <div className="flex items-center justify-center gap-4">
-            <Button variant="outline" size="lg" disabled={!activeCandidate || isPending} onClick={() => void handleSwipe("pass")}>
+            <Button variant="outline" size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("pass")}>
               <XIcon />
               Pass
             </Button>
-            <Button size="lg" disabled={!activeCandidate || isPending} onClick={() => void handleSwipe("like")}>
+            <Button size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("like")}>
               <HeartIcon />
               Like
             </Button>
