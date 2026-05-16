@@ -166,14 +166,15 @@ export function DiscoverBoard() {
                       zIndex: 10 + visualIndex,
                       opacity: isTopCard ? 1 : 0.88 - reverseIndex * 0.08,
                     }}
-                    onMouseDown={
+                    onPointerDown={
                       isTopCard
                         ? (event) => {
+                            event.currentTarget.setPointerCapture(event.pointerId);
                             dragStartX.current = event.clientX;
                           }
                         : undefined
                     }
-                    onMouseMove={
+                    onPointerMove={
                       isTopCard
                         ? (event) => {
                             if (dragStartX.current === null) return;
@@ -181,24 +182,22 @@ export function DiscoverBoard() {
                           }
                         : undefined
                     }
-                    onMouseUp={isTopCard ? finishDrag : undefined}
-                    onMouseLeave={isTopCard ? finishDrag : undefined}
-                    onTouchStart={
+                    onPointerUp={
                       isTopCard
                         ? (event) => {
-                            dragStartX.current = event.touches[0].clientX;
+                            event.currentTarget.releasePointerCapture(event.pointerId);
+                            finishDrag();
                           }
                         : undefined
                     }
-                    onTouchMove={
+                    onPointerCancel={
                       isTopCard
                         ? (event) => {
-                            if (dragStartX.current === null) return;
-                            setDragOffsetX(event.touches[0].clientX - dragStartX.current);
+                            event.currentTarget.releasePointerCapture(event.pointerId);
+                            finishDrag();
                           }
                         : undefined
                     }
-                    onTouchEnd={isTopCard ? finishDrag : undefined}
                   >
                     <UserCard {...candidate} />
                   </div>
