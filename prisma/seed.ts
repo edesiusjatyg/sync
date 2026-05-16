@@ -23,41 +23,41 @@ const goalOrder = [
 ] as const;
 
 const skillSeeds = [
-  { id: "00000000-0000-0000-0000-000000000001", category: "Frontend", name: "HTML/CSS" },
-  { id: "00000000-0000-0000-0000-000000000002", category: "Frontend", name: "React" },
-  { id: "00000000-0000-0000-0000-000000000003", category: "Frontend", name: "Next.js" },
-  { id: "00000000-0000-0000-0000-000000000004", category: "Frontend", name: "Tailwind CSS" },
-  { id: "00000000-0000-0000-0000-000000000005", category: "Frontend", name: "TypeScript" },
-  { id: "00000000-0000-0000-0000-000000000006", category: "Backend", name: "Node.js" },
-  { id: "00000000-0000-0000-0000-000000000007", category: "Backend", name: "Express" },
-  { id: "00000000-0000-0000-0000-000000000008", category: "Backend", name: "Prisma" },
-  { id: "00000000-0000-0000-0000-000000000009", category: "Backend", name: "PostgreSQL" },
-  { id: "00000000-0000-0000-0000-00000000000a", category: "Backend", name: "REST API Design" },
-  { id: "00000000-0000-0000-0000-00000000000b", category: "AI/ML", name: "Python" },
-  { id: "00000000-0000-0000-0000-00000000000c", category: "AI/ML", name: "Data Analysis" },
-  { id: "00000000-0000-0000-0000-00000000000d", category: "AI/ML", name: "Machine Learning" },
-  { id: "00000000-0000-0000-0000-00000000000e", category: "AI/ML", name: "Deep Learning" },
-  { id: "00000000-0000-0000-0000-00000000000f", category: "AI/ML", name: "Prompt Engineering" },
-  { id: "00000000-0000-0000-0000-000000000010", category: "UI/UX", name: "Figma" },
-  { id: "00000000-0000-0000-0000-000000000011", category: "UI/UX", name: "Wireframing" },
-  { id: "00000000-0000-0000-0000-000000000012", category: "UI/UX", name: "Design Systems" },
-  { id: "00000000-0000-0000-0000-000000000013", category: "UI/UX", name: "Prototyping" },
-  { id: "00000000-0000-0000-0000-000000000014", category: "UI/UX", name: "User Research" },
-  { id: "00000000-0000-0000-0000-000000000015", category: "Research", name: "Hypothesis Formulation" },
-  { id: "00000000-0000-0000-0000-000000000016", category: "Research", name: "Literature Review" },
-  { id: "00000000-0000-0000-0000-000000000017", category: "Research", name: "Survey Design" },
-  { id: "00000000-0000-0000-0000-000000000018", category: "Research", name: "Data Interpretation" },
-  { id: "00000000-0000-0000-0000-000000000019", category: "Research", name: "Experiment Design" },
-  { id: "00000000-0000-0000-0000-00000000001a", category: "Writing", name: "Copywriting" },
-  { id: "00000000-0000-0000-0000-00000000001b", category: "Writing", name: "Technical Writing" },
-  { id: "00000000-0000-0000-0000-00000000001c", category: "Writing", name: "Presentation Writing" },
-  { id: "00000000-0000-0000-0000-00000000001d", category: "Writing", name: "Editing" },
-  { id: "00000000-0000-0000-0000-00000000001e", category: "Writing", name: "Documentation" },
+  { id: "00000000-0000-4000-8000-000000000001", category: "Frontend", name: "HTML/CSS" },
+  { id: "00000000-0000-4000-8000-000000000002", category: "Frontend", name: "React" },
+  { id: "00000000-0000-4000-8000-000000000003", category: "Frontend", name: "Next.js" },
+  { id: "00000000-0000-4000-8000-000000000004", category: "Frontend", name: "Tailwind CSS" },
+  { id: "00000000-0000-4000-8000-000000000005", category: "Frontend", name: "TypeScript" },
+  { id: "00000000-0000-4000-8000-000000000006", category: "Backend", name: "Node.js" },
+  { id: "00000000-0000-4000-8000-000000000007", category: "Backend", name: "Express" },
+  { id: "00000000-0000-4000-8000-000000000008", category: "Backend", name: "Prisma" },
+  { id: "00000000-0000-4000-8000-000000000009", category: "Backend", name: "PostgreSQL" },
+  { id: "00000000-0000-4000-8000-00000000000a", category: "Backend", name: "REST API Design" },
+  { id: "00000000-0000-4000-8000-00000000000b", category: "AI/ML", name: "Python" },
+  { id: "00000000-0000-4000-8000-00000000000c", category: "AI/ML", name: "Data Analysis" },
+  { id: "00000000-0000-4000-8000-00000000000d", category: "AI/ML", name: "Machine Learning" },
+  { id: "00000000-0000-4000-8000-00000000000e", category: "AI/ML", name: "Deep Learning" },
+  { id: "00000000-0000-4000-8000-00000000000f", category: "AI/ML", name: "Prompt Engineering" },
+  { id: "00000000-0000-4000-8000-000000000010", category: "UI/UX", name: "Figma" },
+  { id: "00000000-0000-4000-8000-000000000011", category: "UI/UX", name: "Wireframing" },
+  { id: "00000000-0000-4000-8000-000000000012", category: "UI/UX", name: "Design Systems" },
+  { id: "00000000-0000-4000-8000-000000000013", category: "UI/UX", name: "Prototyping" },
+  { id: "00000000-0000-4000-8000-000000000014", category: "UI/UX", name: "User Research" },
+  { id: "00000000-0000-4000-8000-000000000015", category: "Research", name: "Hypothesis Formulation" },
+  { id: "00000000-0000-4000-8000-000000000016", category: "Research", name: "Literature Review" },
+  { id: "00000000-0000-4000-8000-000000000017", category: "Research", name: "Survey Design" },
+  { id: "00000000-0000-4000-8000-000000000018", category: "Research", name: "Data Interpretation" },
+  { id: "00000000-0000-4000-8000-000000000019", category: "Research", name: "Experiment Design" },
+  { id: "00000000-0000-4000-8000-00000000001a", category: "Writing", name: "Copywriting" },
+  { id: "00000000-0000-4000-8000-00000000001b", category: "Writing", name: "Technical Writing" },
+  { id: "00000000-0000-4000-8000-00000000001c", category: "Writing", name: "Presentation Writing" },
+  { id: "00000000-0000-4000-8000-00000000001d", category: "Writing", name: "Editing" },
+  { id: "00000000-0000-4000-8000-00000000001e", category: "Writing", name: "Documentation" },
 ] as const;
 
 const users = {
   alya: {
-    id: "10000000-0000-0000-0000-000000000001",
+    id: "10000000-0000-4000-8000-000000000001",
     email: "alya@sync.dev",
     name: "Alya Putri",
     avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Alya",
@@ -70,16 +70,16 @@ const users = {
       goalTypes: [GoalType.tugas, GoalType.side_project],
     },
     skills: [
-      { skillId: "00000000-0000-0000-0000-000000000002", rating: 9 },
-      { skillId: "00000000-0000-0000-0000-000000000003", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-000000000004", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-000000000010", rating: 7 },
-      { skillId: "00000000-0000-0000-0000-000000000012", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-00000000001c", rating: 6 },
+      { skillId: "00000000-0000-4000-8000-000000000002", rating: 9 },
+      { skillId: "00000000-0000-4000-8000-000000000003", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-000000000004", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-000000000010", rating: 7 },
+      { skillId: "00000000-0000-4000-8000-000000000012", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-00000000001c", rating: 6 },
     ],
   },
   bima: {
-    id: "10000000-0000-0000-0000-000000000002",
+    id: "10000000-0000-4000-8000-000000000002",
     email: "bima@sync.dev",
     name: "Bima Saputra",
     avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Bima",
@@ -92,16 +92,16 @@ const users = {
       goalTypes: [GoalType.tugas, GoalType.riset],
     },
     skills: [
-      { skillId: "00000000-0000-0000-0000-000000000006", rating: 9 },
-      { skillId: "00000000-0000-0000-0000-000000000008", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-000000000009", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-000000000016", rating: 7 },
-      { skillId: "00000000-0000-0000-0000-000000000018", rating: 7 },
-      { skillId: "00000000-0000-0000-0000-00000000001e", rating: 6 },
+      { skillId: "00000000-0000-4000-8000-000000000006", rating: 9 },
+      { skillId: "00000000-0000-4000-8000-000000000008", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-000000000009", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-000000000016", rating: 7 },
+      { skillId: "00000000-0000-4000-8000-000000000018", rating: 7 },
+      { skillId: "00000000-0000-4000-8000-00000000001e", rating: 6 },
     ],
   },
   citra: {
-    id: "10000000-0000-0000-0000-000000000003",
+    id: "10000000-0000-4000-8000-000000000003",
     email: "citra@sync.dev",
     name: "Citra Lestari",
     avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Citra",
@@ -114,16 +114,16 @@ const users = {
       goalTypes: [GoalType.kompetisi, GoalType.riset],
     },
     skills: [
-      { skillId: "00000000-0000-0000-0000-00000000000b", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-00000000000d", rating: 9 },
-      { skillId: "00000000-0000-0000-0000-00000000000f", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-000000000015", rating: 7 },
-      { skillId: "00000000-0000-0000-0000-000000000019", rating: 8 },
-      { skillId: "00000000-0000-0000-0000-00000000001b", rating: 7 },
+      { skillId: "00000000-0000-4000-8000-00000000000b", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-00000000000d", rating: 9 },
+      { skillId: "00000000-0000-4000-8000-00000000000f", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-000000000015", rating: 7 },
+      { skillId: "00000000-0000-4000-8000-000000000019", rating: 8 },
+      { skillId: "00000000-0000-4000-8000-00000000001b", rating: 7 },
     ],
   },
   admin: {
-    id: "10000000-0000-0000-0000-000000000004",
+    id: "10000000-0000-4000-8000-000000000004",
     email: "admin@sync.dev",
     name: "Platform Admin",
     avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Admin",
@@ -366,7 +366,7 @@ async function main() {
     });
 
     await tx.group.upsert({
-      where: { id: "20000000-0000-0000-0000-000000000001" },
+      where: { id: "20000000-0000-4000-8000-000000000001" },
       update: {
         name: "Sync Sprint Crew",
         goalTypes: [GoalType.tugas, GoalType.side_project],
@@ -375,7 +375,7 @@ async function main() {
         createdById: users.alya.id,
       },
       create: {
-        id: "20000000-0000-0000-0000-000000000001",
+        id: "20000000-0000-4000-8000-000000000001",
         name: "Sync Sprint Crew",
         goalTypes: [GoalType.tugas, GoalType.side_project],
         maxMembers: 5,
@@ -387,13 +387,13 @@ async function main() {
     await tx.groupMember.upsert({
       where: {
         groupId_userId: {
-          groupId: "20000000-0000-0000-0000-000000000001",
+          groupId: "20000000-0000-4000-8000-000000000001",
           userId: users.alya.id,
         },
       },
       update: { role: GroupMemberRole.admin },
       create: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         userId: users.alya.id,
         role: GroupMemberRole.admin,
       },
@@ -402,13 +402,13 @@ async function main() {
     await tx.groupMember.upsert({
       where: {
         groupId_userId: {
-          groupId: "20000000-0000-0000-0000-000000000001",
+          groupId: "20000000-0000-4000-8000-000000000001",
           userId: users.bima.id,
         },
       },
       update: { role: GroupMemberRole.member },
       create: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         userId: users.bima.id,
         role: GroupMemberRole.member,
       },
@@ -417,22 +417,22 @@ async function main() {
     await tx.groupMember.upsert({
       where: {
         groupId_userId: {
-          groupId: "20000000-0000-0000-0000-000000000001",
+          groupId: "20000000-0000-4000-8000-000000000001",
           userId: users.citra.id,
         },
       },
       update: { role: GroupMemberRole.member },
       create: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         userId: users.citra.id,
         role: GroupMemberRole.member,
       },
     });
 
     await tx.task.upsert({
-      where: { id: "30000000-0000-0000-0000-000000000001" },
+      where: { id: "30000000-0000-4000-8000-000000000001" },
       update: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         createdById: users.alya.id,
         assignedToId: users.bima.id,
         title: "Define Prisma schema ownership boundaries",
@@ -440,8 +440,8 @@ async function main() {
         deadline: new Date("2026-05-20T17:00:00.000Z"),
       },
       create: {
-        id: "30000000-0000-0000-0000-000000000001",
-        groupId: "20000000-0000-0000-0000-000000000001",
+        id: "30000000-0000-4000-8000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         createdById: users.alya.id,
         assignedToId: users.bima.id,
         title: "Define Prisma schema ownership boundaries",
@@ -451,9 +451,9 @@ async function main() {
     });
 
     await tx.task.upsert({
-      where: { id: "30000000-0000-0000-0000-000000000002" },
+      where: { id: "30000000-0000-4000-8000-000000000002" },
       update: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         createdById: users.alya.id,
         assignedToId: users.citra.id,
         title: "Summarize research findings for onboarding prompts",
@@ -461,8 +461,8 @@ async function main() {
         deadline: new Date("2026-05-22T09:00:00.000Z"),
       },
       create: {
-        id: "30000000-0000-0000-0000-000000000002",
-        groupId: "20000000-0000-0000-0000-000000000001",
+        id: "30000000-0000-4000-8000-000000000002",
+        groupId: "20000000-0000-4000-8000-000000000001",
         createdById: users.alya.id,
         assignedToId: users.citra.id,
         title: "Summarize research findings for onboarding prompts",
@@ -472,9 +472,9 @@ async function main() {
     });
 
     await tx.studySession.upsert({
-      where: { id: "40000000-0000-0000-0000-000000000001" },
+      where: { id: "40000000-0000-4000-8000-000000000001" },
       update: {
-        groupId: "20000000-0000-0000-0000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         loggedById: users.alya.id,
         startedAt: new Date("2026-05-15T11:00:00.000Z"),
         endedAt: new Date("2026-05-15T13:00:00.000Z"),
@@ -482,8 +482,8 @@ async function main() {
         effectivenessScore: 4,
       },
       create: {
-        id: "40000000-0000-0000-0000-000000000001",
-        groupId: "20000000-0000-0000-0000-000000000001",
+        id: "40000000-0000-4000-8000-000000000001",
+        groupId: "20000000-0000-4000-8000-000000000001",
         loggedById: users.alya.id,
         startedAt: new Date("2026-05-15T11:00:00.000Z"),
         endedAt: new Date("2026-05-15T13:00:00.000Z"),
@@ -497,16 +497,16 @@ async function main() {
         fromUserId_toUserId_skillId_groupId: {
           fromUserId: users.bima.id,
           toUserId: users.alya.id,
-          skillId: "00000000-0000-0000-0000-000000000002",
-          groupId: "20000000-0000-0000-0000-000000000001",
+          skillId: "00000000-0000-4000-8000-000000000002",
+          groupId: "20000000-0000-4000-8000-000000000001",
         },
       },
       update: {},
       create: {
         fromUserId: users.bima.id,
         toUserId: users.alya.id,
-        skillId: "00000000-0000-0000-0000-000000000002",
-        groupId: "20000000-0000-0000-0000-000000000001",
+        skillId: "00000000-0000-4000-8000-000000000002",
+        groupId: "20000000-0000-4000-8000-000000000001",
       },
     });
   }, {
