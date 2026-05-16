@@ -53,6 +53,11 @@ const manageMemberSchema = z.object({
   userId: z.string().uuid(),
 });
 
+const searchInvitableUsersSchema = z.object({
+  groupId: z.string().uuid(),
+  query: z.string().trim().min(1).max(100),
+});
+
 interface GroupSummary {
   groupId: string;
   name: string;
@@ -62,6 +67,13 @@ interface GroupSummary {
   memberCount: number;
   currentUserRole: "admin" | "member";
   createdAt: string;
+}
+
+interface InvitableUserOption {
+  userId: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
 }
 
 interface GroupDetail {
@@ -500,6 +512,70 @@ export async function inviteMember(
     return {
       success: false,
       error: getActionErrorMessage(error, "Failed to invite the member."),
+    };
+  }
+}
+
+export async function searchUsersForGroupInvite(
+  input: z.infer<typeof searchInvitableUsersSchema>,
+): Promise<DataActionResult<InvitableUserOption[]>> {
+  try {
+    const user = await getAuthenticatedUser();
+    const { groupId, query } = searchInvitableUsersSchema.parse(input);
+
+    await assertGroupAdmin(user.id, groupId);
+
+    const members = await db.groupMember.findMany({
+      where: { groupId },
+      select: { userId: true },
+    });
+
+    const excludedUserIds = new Set(members.map((member) => member.userId));
+    excludedUserIds.add(user.id);
+
+    const users = await db.user.findMany({
+      where: {
+        id: { notIn: [...excludedUserIds] },
+        isActive: true,
+        OR: [
+          {
+            email: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+          {
+            name: {
+              contains: query,
+              mode: "insensitive",
+            },
+          },
+        ],
+      },
+      orderBy: [{ name: "asc" }],
+      take: 8,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
+
+    return {
+      success: true,
+      data: users.map((candidate) => ({
+        userId: candidate.id,
+        name: candidate.name,
+        email: candidate.email,
+        avatarUrl: candidate.avatarUrl,
+      })),
+    };
+  } catch (error) {
+    logActionError("searchUsersForGroupInvite", error);
+    return {
+      success: false,
+      error: getActionErrorMessage(error, "Failed to search users."),
     };
   }
 }

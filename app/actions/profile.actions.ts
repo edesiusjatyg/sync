@@ -75,6 +75,12 @@ interface ProfileWithSkills {
   }[];
 }
 
+interface SkillCatalogItem {
+  skillId: string;
+  name: string;
+  category: string;
+}
+
 type PersistedProfileInput = z.infer<typeof onboardingProfileSchema>;
 
 async function getAuthenticatedUserId() {
@@ -260,6 +266,34 @@ export async function getMyProfile(): Promise<DataActionResult<ProfileWithSkills
     return {
       success: false,
       error: getActionErrorMessage(error, "Failed to load your profile."),
+    };
+  }
+}
+
+export async function getSkillCatalog(): Promise<DataActionResult<SkillCatalogItem[]>> {
+  try {
+    const skills = await db.skill.findMany({
+      orderBy: [{ category: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        category: true,
+      },
+    });
+
+    return {
+      success: true,
+      data: skills.map((skill) => ({
+        skillId: skill.id,
+        name: skill.name,
+        category: skill.category,
+      })),
+    };
+  } catch (error) {
+    logActionError("getSkillCatalog", error);
+    return {
+      success: false,
+      error: getActionErrorMessage(error, "Failed to load the skill catalog."),
     };
   }
 }
