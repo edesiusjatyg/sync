@@ -1,18 +1,21 @@
-import { defineConfig } from 'vitest/config'
-import path from 'path'
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
-// Vitest config for unit and integration tests
 export default defineConfig({
+  plugins: [react(), tsconfigPaths()],
   test: {
+    include: ['tests/**/*.test.ts'],
+    exclude: ['e2e/'],
     environment: 'node',
-    setupFiles: ['./vitest.setup.ts'],
-    exclude: ['e2e/**', 'node_modules/**', '.next/**'],
-    globals: true,
+    setupFiles: ['vitest.setup.ts'],
+    env: process.env,
     fileParallelism: false,
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './'),
+    testTimeout: 30000,
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
     },
   },
-})
+});

@@ -1,0 +1,138 @@
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+ DEPRECATED  `test.poolOptions` was removed in Vitest 4. All previous `poolOptions` are now top-level options. Please, refer to the migration guide: https://vitest.dev/guide/migration#pool-rework
+
+ RUN  v4.1.6 /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync
+
+stderr | tests/integration/task.test.ts > Task Server Actions > createTask > non-member cannot create task
+[createTask] AuthorizationError: Unauthorized
+    at assertGroupMember (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/lib/utils.ts:150:11)
+    at createTask (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:111:5)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/task.test.ts:37:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/task.test.ts > Task Server Actions > createTask > returns error on missing title
+[createTask] ZodError: [
+  {
+    "origin": "string",
+    "code": "too_small",
+    "minimum": 1,
+    "inclusive": true,
+    "path": [
+      "title"
+    ],
+    "message": "Too small: expected string to have >=1 characters"
+  }
+]
+    at createTask (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:109:37)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/task.test.ts:51:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/task.test.ts > Task Server Actions > updateTask > invalid assignee returns error
+[updateTask] AuthorizationError: Assigned user is not a group member.
+    at assertAssigneeIsGroupMember (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:100:11)
+    at updateTask (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:173:7)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/task.test.ts:84:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/task.test.ts > Task Server Actions > updateTask > non-member cannot update
+[updateTask] AuthorizationError: Unauthorized
+    at assertGroupMember (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/lib/utils.ts:150:11)
+    at updateTask (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:170:5)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/task.test.ts:99:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/task.test.ts > Task Server Actions > deleteTask > regular non-creator member cannot delete
+[deleteTask] AuthorizationError: Unauthorized
+    at assertGroupAdmin (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/lib/utils.ts:170:11)
+    at deleteTask (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/task.actions.ts:232:7)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/task.test.ts:144:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+ ✓ tests/integration/task.test.ts (9 tests) 69072ms
+       ✓ creates task with status todo  6808ms
+       ✓ non-member cannot create task  6905ms
+       ✓ returns error on missing title  4914ms
+       ✓ any member can change status  8172ms
+       ✓ invalid assignee returns error  8118ms
+       ✓ non-member cannot update  7604ms
+       ✓ creator can delete their own task  8065ms
+       ✓ group_admin can delete any task  7975ms
+       ✓ regular non-creator member cannot delete  10500ms
+stderr | tests/integration/session.test.ts > Session Server Actions > logSession > non-member cannot log session
+[logSession] AuthorizationError: Unauthorized
+    at assertGroupMember (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/lib/utils.ts:150:11)
+    at logSession (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/session.actions.ts:69:5)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/session.test.ts:68:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/session.test.ts > Session Server Actions > submitEffectivenessScore > another user cannot submit score
+[submitEffectivenessScore] AuthorizationError: Unauthorized
+    at submitEffectivenessScore (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/session.actions.ts:124:13)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/session.test.ts:104:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | tests/integration/session.test.ts > Session Server Actions > submitEffectivenessScore > score outside 1-5 returns error
+[submitEffectivenessScore] ZodError: [
+  {
+    "origin": "number",
+    "code": "too_big",
+    "maximum": 5,
+    "inclusive": true,
+    "path": [
+      "score"
+    ],
+    "message": "Too big: expected number to be <=5"
+  }
+]
+    at submitEffectivenessScore (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/session.actions.ts:113:65)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/session.test.ts:118:22
+    at file:///home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+ ✓ tests/integration/session.test.ts (6 tests) 34793ms
+       ✓ creates session successfully  6315ms
+       ✓ endedAt before startedAt returns error  4274ms
+       ✓ non-member cannot log session  7140ms
+       ✓ session logger can submit score  5562ms
+       ✓ another user cannot submit score  7131ms
+       ✓ score outside 1-5 returns error  4363ms
+stdout | tests/integration/swipe.test.ts > Swipe Server Actions > getCandidates > excludes swiped users and self
+[cache] redis.get took 35ms
+[cache] MISS: sync:candidates:370673af-8975-4042-90fa-db54fecd4478
+
+stdout | tests/integration/swipe.test.ts > Swipe Server Actions > getCandidates > returns empty array when no candidates exist
+[cache] redis.get took 30ms
+[cache] MISS: sync:candidates:347ec908-f2bf-4b82-a580-156571e9dc5c
+
+stderr | tests/integration/swipe.test.ts > Swipe Server Actions > getCandidates > returns error when unauthenticated
+[getCandidates] AuthorizationError: Unauthorized
+    at getAuthenticatedUser (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/swipe.actions.ts:44:11)
+    at getCandidates (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/swipe.actions.ts:54:18)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/swipe.test.ts:74:22
+
+stderr | tests/integration/swipe.test.ts > Swipe Server Actions > recordSwipe > returns error when unauthenticated
+[recordSwipe] AuthorizationError: Unauthorized
+    at getAuthenticatedUser (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/swipe.actions.ts:44:11)
+    at recordSwipe (/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/app/actions/swipe.actions.ts:187:18)
+    at /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/integration/swipe.test.ts:208:22
+
+ ✓ tests/integration/swipe.test.ts (8 tests) 44521ms
+       ✓ excludes swiped users and self  10105ms
+       ✓ returns empty array when no candidates exist  4284ms
+       ✓ returns error when unauthenticated  1011ms
+       ✓ like without reciprocal creates swipe and returns matched: false  6541ms
+       ✓ like with reciprocal creates match and returns matched: true  7737ms
+       ✓ pass creates swipe and returns matched: false  6618ms
+       ✓ returns user-friendly error on duplicate swipe  6583ms
+       ✓ returns error when unauthenticated  1637ms
+stdout | tests/integration/match.test.ts > Match Server Actions > getMyMatches > returns matches where current user is userA or userB
+[cache] redis.get took 35ms
+[cache] MISS: sync:matches:64566310-2bf3-4f0c-af38-98a65be8c08d
+
+stdout | tests/integration/match.test.ts > Match Server Actions > getMyMatches > does not return declined or pending matches
+[cache] redis.get took 30ms
+[cache] MISS: sync:matches:10ea20af-a154-4263-99d7-38ed61ddac36
+
+stdout | tests/integration/match.test.ts > Match Server Actions > getMyMatches > returns empty array when no matches
+[cache] redis.get took 36ms
+[cache] MISS: sync:matches:6d01511e-e7b2-4b6b-b6d9-d8a63620df2e
+

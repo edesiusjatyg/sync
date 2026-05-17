@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Discover Page', () => {
+test.describe('Groups Page', () => {
   test('requires authentication', async ({ page }) => {
-    await page.goto('/discover');
+    await page.goto('/groups');
     await expect(page).toHaveURL(/.*\/login/);
   });
 });

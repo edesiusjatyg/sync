@@ -1,69 +1,140 @@
-import { db } from './db';
-import { UserRole, SwipeDirection, MatchStatus, GroupMemberRole, TaskStatus, GoalType, WorkStyleSync, WorkStyleDriven, WorkStyleRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { testDb } from './db';
+import { computeMatchingVector } from '@/lib/matching';
+import { GoalType, WorkStyleSync, WorkStyleDriven, WorkStyleRole, TaskStatus, Profile, User, Match, Group, Task, StudySession, UserSkill } from '@prisma/client';
 
-export async function createUser(overrides: any = {}) {
-  const email = overrides.email || `test-${Math.random().toString(36).substring(7)}@test.com`;
-  return db.user.create({
+type UserWithProfile = User & { profile: Profile, userSkills: UserSkill[] };
+
+export async function createUser(overrides?: Partial<User>): Promise<User> {
+  const passwordHash = await bcrypt.hash('password123', 10);
+  const email = overrides?.email ?? `user-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`;
+  
+  return testDb.user.create({
     data: {
       email,
-      name: 'Test User',
-      passwordHash: await bcrypt.hash('password123', 10),
-      role: UserRole.student,
-      isActive: true,
+      name: overrides?.name ?? 'Test User',
+      passwordHash,
+      role: overrides?.role ?? 'student',
+      isActive: overrides?.isActive ?? true,
+      avatarUrl: overrides?.avatarUrl,
       ...overrides,
-    },
+    }
   });
 }
 
-export async function createSkill(overrides: any = {}) {
-  const name = overrides.name || `Skill-${Math.random().toString(36).substring(7)}`;
-  return db.skill.create({
+export async function createUserWithProfile(overrides?: Partial<User>): Promise<UserWithProfile> {
+  const user = await createUser(overrides);
+  
+  const profile = await testDb.profile.create({
     data: {
-      name,
-      category: 'Test Category',
-      ...overrides,
-    },
-  });
-}
-
-export async function createProfile(userId: string, overrides: any = {}) {
-  return db.profile.create({
-    data: {
-      userId,
-      productiveHours: [9, 10, 11],
+      userId: user.id,
+      bio: 'Test bio',
+      productiveHours: [6, 12, 17],
       workStyleSync: WorkStyleSync.async,
       workStyleDriven: WorkStyleDriven.milestone,
       workStyleRole: WorkStyleRole.flexible,
-      goalTypes: [GoalType.tugas],
-      matchingVector: [0.5, 0.5, 0.5], // Dummy vector
-      ...overrides,
-    },
+      goalTypes: [GoalType.tugas, GoalType.side_project],
+      matchingVector: [],
+    }
+  });
+
+  let skills = await testDb.skill.findMany({ take: 3 });
+  if (skills.length < 3) {
+    await testDb.skill.createMany({
+      data: [
+        { id: '11111111-1111-1111-1111-111111111111', name: 'TypeScript', category: 'Frontend' },
+        { id: '22222222-2222-2222-2222-222222222222', name: 'Node.js', category: 'Backend' },
+        { id: '33333333-3333-3333-3333-333333333333', name: 'Figma', category: 'Design' }
+      ],
+      skipDuplicates: true
+    });
+    skills = await testDb.skill.findMany({ take: 3 });
+  }
+  
+  const allSkills = await testDb.skill.findMany({ select: { id: true } });
+
+  const userSkillsData = skills.map(s => ({
+    userId: user.id,
+    skillId: s.id,
+    rating: 8
+  }));
+
+  await testDb.userSkill.createMany({ data: userSkillsData });
+
+  const userSkills = await testDb.userSkill.findMany({ where: { userId: user.id } });
+
+  const vector = computeMatchingVector(profile, userSkills, allSkills.map(s => s.id));
+  
+  const updatedProfile = await testDb.profile.update({
+    where: { userId: user.id },
+    data: { matchingVector: vector }
+  });
+
+  return {
+    ...user,
+    profile: updatedProfile,
+    userSkills
+  };
+}
+
+export async function createMatch(userAId: string, userBId: string, status: 'pending'|'accepted'|'declined' = 'accepted'): Promise<Match> {
+  const [a, b] = userAId < userBId ? [userAId, userBId] : [userBId, userAId];
+  return testDb.match.create({
+    data: {
+      userAId: a,
+      userBId: b,
+      compatibilityScore: 0.85,
+      status,
+    }
   });
 }
 
-export async function createGroup(createdById: string, overrides: any = {}) {
-  const name = overrides.name || `Group-${Math.random().toString(36).substring(7)}`;
-  return db.group.create({
+export async function createGroup(createdById: string, memberIds: string[] = []): Promise<Group> {
+  const members = [{ userId: createdById, role: 'admin' as const }];
+  for (const id of memberIds) {
+    if (id !== createdById) {
+      members.push({ userId: id, role: 'member' as const });
+    }
+  }
+
+  return testDb.group.create({
     data: {
-      name,
+      name: 'Test Group',
       createdById,
       goalTypes: [GoalType.tugas],
       maxMembers: 5,
-      isOpen: true,
-      ...overrides,
-    },
+      members: {
+        create: members
+      }
+    }
   });
 }
 
-export async function createMatch(userAId: string, userBId: string, overrides: any = {}) {
-  return db.match.create({
+export async function createTask(groupId: string, createdById: string, overrides?: Partial<Task>): Promise<Task> {
+  return testDb.task.create({
     data: {
-      userAId,
-      userBId,
-      compatibilityScore: 0.9,
-      status: MatchStatus.pending,
-      ...overrides,
-    },
+      groupId,
+      createdById,
+      title: overrides?.title ?? 'Test Task',
+      status: overrides?.status ?? TaskStatus.todo,
+      assignedToId: overrides?.assignedToId,
+      deadline: overrides?.deadline,
+    }
+  });
+}
+
+export async function createSession(groupId: string, loggedById: string, overrides?: Partial<StudySession>): Promise<StudySession> {
+  const now = new Date();
+  const later = new Date(now.getTime() + 60 * 60 * 1000);
+  
+  return testDb.studySession.create({
+    data: {
+      groupId,
+      loggedById,
+      startedAt: overrides?.startedAt ?? now,
+      endedAt: overrides?.endedAt ?? later,
+      notes: overrides?.notes,
+      effectivenessScore: overrides?.effectivenessScore,
+    }
   });
 }

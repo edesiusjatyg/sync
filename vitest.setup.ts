@@ -1,27 +1,45 @@
-import { beforeAll, vi } from 'vitest';
-import dotenv from 'dotenv';
+import { beforeEach, afterAll, vi } from 'vitest';
+import { testDb } from './tests/helpers/db';
+import { flushTestCache } from './tests/helpers/cache';
 
-// Load the environment variables from .env if present
-dotenv.config();
-
-// Enforce using TEST DB to avoid mutating dev or prod
-if (!process.env.DATABASE_URL_TEST) {
-  throw new Error('DATABASE_URL_TEST must be defined in your environment to run tests safely. Set it in .env');
-}
-
-// Override the main database URL with the test URL
-process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+vi.mock('@/lib/auth', () => ({
+  auth: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
-vi.mock('next/navigation', () => ({
-  redirect: vi.fn((url: string) => {
-    throw new Error(`NEXT_REDIRECT:${url}`);
-  }),
-  notFound: vi.fn(() => {
-    throw new Error('NEXT_NOT_FOUND');
-  }),
-}));
+vi.mock('@/lib/db', async () => {
+  const { testDb } = await import('./tests/helpers/db');
+  return { db: testDb };
+});
+
+beforeEach(async () => {
+  // Respect FK constraints when truncating
+  const tableNames = await testDb.$queryRaw<
+    Array<{ tablename: string }>
+  >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
+
+  const tables = tableNames
+    .map(({ tablename }) => tablename)
+    .filter((name) => name !== '_prisma_migrations')
+    .map((name) => `"public"."${name}"`)
+    .join(', ');
+
+  if (tables.length > 0) {
+    await testDb.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE;`);
+  }
+
+  await flushTestCache();
+  
+  // Clear any auth mocks
+  vi.clearAllMocks();
+});
+
+afterAll(async () => {
+  await testDb.$disconnect();
+});

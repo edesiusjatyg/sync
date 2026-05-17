@@ -1,0 +1,98 @@
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+ DEPRECATED  `test.poolOptions` was removed in Vitest 4. All previous `poolOptions` are now top-level options. Please, refer to the migration guide: https://vitest.dev/guide/migration#pool-rework
+
+ RUN  v4.1.6 /home/fast9/Secondary/CS4/4_WEBAPPDEV/sync
+
+ × tests/integration/group.test.ts > Group Server Actions > createGroup > creates group and group member admin 4223ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > createGroup > creates group members for invited users 3233ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > inviteMember > invites successfully 3730ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > inviteMember > returns error if group is at max capacity 1620ms
+   → 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `40P01`. Message: `ERROR: deadlock detected
+DETAIL: Process 1265 waits for AccessExclusiveLock on relation 24668 of database 16391; blocked by process 1315.
+Process 1315 waits for RowShareLock on relation 24661 of database 16391; blocked by process 1265.
+HINT: See server log for query details.`
+ × tests/integration/group.test.ts > Group Server Actions > inviteMember > returns error if already a member 3330ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > inviteMember > returns unauthorized if non-admin invites 3002ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > kickMember > group_admin can kick a member 5802ms
+   → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ✓ tests/integration/group.test.ts > Group Server Actions > kickMember > cannot kick self 5234ms
+ × tests/integration/group.test.ts > Group Server Actions > leaveGroup > member can leave group 3078ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > leaveGroup > group_admin cannot leave without transferring first 4279ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`
+ × tests/integration/group.test.ts > Group Server Actions > leaveGroup > last member leaving deletes the group 3936ms
+   → 
+Invalid `testDb.userSkill.createMany()` invocation in
+/home/fast9/Secondary/CS4/4_WEBAPPDEV/sync/tests/helpers/fixtures.ts:62:26
+
+  59   rating: 8
+  60 }));
+  61 
+→ 62 await testDb.userSkill.createMany(
+Foreign key constraint violated on the constraint: `UserSkill_userId_fkey`

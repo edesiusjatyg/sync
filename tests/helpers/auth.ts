@@ -1,18 +1,17 @@
-// Reusable mock data for auth session
-export function createMockSessionUser(overrides: Partial<{ id: string; email: string; name: string; role: 'student' | 'admin'; hasCompletedOnboarding: boolean }> = {}) {
-  return {
-    id: 'mock-user-id',
-    email: 'mock@test.com',
-    name: 'Mock User',
-    role: 'student' as const,
-    hasCompletedOnboarding: true,
-    ...overrides,
-  };
+import { vi } from 'vitest';
+import type { Session } from 'next-auth';
+import type { SessionUser } from '@/lib/utils';
+import { auth } from '@/lib/auth';
+
+export function mockSession(user: SessionUser): void {
+  vi.mocked(auth).mockResolvedValue({
+    user: {
+      ...user,
+    },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  } as Session);
 }
 
-export function createMockSession(userOverrides: Parameters<typeof createMockSessionUser>[0] = {}) {
-  return {
-    user: createMockSessionUser(userOverrides),
-    expires: '9999-12-31T23:59:59.999Z',
-  };
+export function clearSession(): void {
+  vi.mocked(auth).mockResolvedValue(null);
 }
