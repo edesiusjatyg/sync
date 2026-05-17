@@ -60,7 +60,7 @@ const users = {
     id: "10000000-0000-4000-8000-000000000001",
     email: "alya@sync.dev",
     name: "Alya Putri",
-    avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Alya",
+    avatarUrl: "https://api.dicebear.com/9.x/thumbs/png?seed=Alya",
     profile: {
       bio: "Frontend-focused collaborator who likes clear specs and polished UI.",
       productiveHours: [12, 17, 20],
@@ -82,7 +82,7 @@ const users = {
     id: "10000000-0000-4000-8000-000000000002",
     email: "bima@sync.dev",
     name: "Bima Saputra",
-    avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Bima",
+    avatarUrl: "https://api.dicebear.com/9.x/thumbs/png?seed=Bima",
     profile: {
       bio: "Backend builder who enjoys structuring data and shipping reliable APIs.",
       productiveHours: [6, 12, 17],
@@ -104,7 +104,7 @@ const users = {
     id: "10000000-0000-4000-8000-000000000003",
     email: "citra@sync.dev",
     name: "Citra Lestari",
-    avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Citra",
+    avatarUrl: "https://api.dicebear.com/9.x/thumbs/png?seed=Citra",
     profile: {
       bio: "AI/ML student who likes experiments, research framing, and concise notes.",
       productiveHours: [0, 17, 20],
@@ -126,7 +126,7 @@ const users = {
     id: "10000000-0000-4000-8000-000000000004",
     email: "admin@sync.dev",
     name: "Platform Admin",
-    avatarUrl: "https://api.dicebear.com/9.x/thumbs/svg?seed=Admin",
+    avatarUrl: "https://api.dicebear.com/9.x/thumbs/png?seed=Admin",
   },
 } as const;
 
@@ -289,7 +289,7 @@ async function main() {
       const mockId = `50000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
       const mockName = `Mock User ${i}`;
       const mockEmail = `mock${i}@sync.dev`;
-      const mockAvatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=Mock${i}`;
+      const mockAvatarUrl = `https://api.dicebear.com/9.x/thumbs/png?seed=Mock${i}`;
       
       const randomHours = scheduleSlots.filter(() => Math.random() > 0.5);
       const productiveHours = randomHours.length > 0 ? randomHours : [scheduleSlots[0]];
