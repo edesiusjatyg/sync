@@ -210,7 +210,7 @@ export function OnboardingWizard({
               </p>
               {errors.skills?.message ? <p className="text-sm text-destructive">{errors.skills.message}</p> : null}
             </div>
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
               {Object.entries(groupedSkills).map(([category, skills]) => (
                 <div key={category} className="border border-border/80 bg-background p-5">
                   <p className="section-kicker">{category}</p>
@@ -222,7 +222,7 @@ export function OnboardingWizard({
                       return (
                         <div key={skill.skillId} className="border border-border/70 p-4">
                           <div className="flex items-center justify-between gap-4">
-                            <label className="flex items-center gap-3">
+                            <label className="flex min-w-0 items-center gap-3">
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={() => {
@@ -233,9 +233,9 @@ export function OnboardingWizard({
                                   setValue("skills", nextSkills, { shouldDirty: true, shouldValidate: true });
                                 }}
                               />
-                              <div>
-                                <p className="font-medium">{skill.name}</p>
-                                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                              <div className="min-w-0">
+                                <p className="truncate font-medium">{skill.name}</p>
+                                <p className="truncate text-xs uppercase tracking-[0.18em] text-muted-foreground">
                                   {category}
                                 </p>
                               </div>
@@ -291,7 +291,7 @@ export function OnboardingWizard({
                 <p className="text-sm text-destructive">{errors.productiveHours.message}</p>
               ) : null}
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
               {hourOptions.map((option) => {
                 const isSelected = productiveHours.includes(option.value);
 
@@ -389,7 +389,7 @@ export function OnboardingWizard({
               <h2 className="font-heading text-2xl font-bold uppercase">State your goals and context</h2>
               {errors.goalTypes?.message ? <p className="text-sm text-destructive">{errors.goalTypes.message}</p> : null}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
               {goalOptions.map((goal) => {
                 const isSelected = goalTypes.includes(goal.value);
 

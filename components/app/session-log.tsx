@@ -74,15 +74,15 @@ export function SessionLog({
       ) : null}
 
       <Card className="surface-panel py-0">
-        <CardHeader className="border-b border-border/80 py-6 flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-4 border-b border-border/80 py-6 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Log Session</CardTitle>
-          <Button variant="outline" onClick={() => setShowForm((value) => !value)}>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowForm((value) => !value)}>
             <PlusIcon />
             {showForm ? "Hide Form" : "Log Session"}
           </Button>
         </CardHeader>
         {showForm ? (
-          <CardContent className="grid gap-5 py-6 lg:grid-cols-2">
+          <CardContent className="grid gap-5 py-6 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="started-at">Start Time</Label>
               <Input id="started-at" type="datetime-local" {...register("startedAt")} />
@@ -91,11 +91,11 @@ export function SessionLog({
               <Label htmlFor="ended-at">End Time</Label>
               <Input id="ended-at" type="datetime-local" {...register("endedAt")} />
             </div>
-            <div className="space-y-2 lg:col-span-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea id="notes" rows={4} {...register("notes")} />
             </div>
-            <div className="lg:col-span-2 flex justify-end">
+            <div className="flex justify-end md:col-span-2">
               <Button
                 onClick={handleSubmit((values) => {
                   const parsed = sessionSchema.safeParse(values);
@@ -140,7 +140,7 @@ export function SessionLog({
           initialSessions.map((session) => (
             <Card key={session.sessionId} className="surface-panel py-0">
               <CardHeader className="border-b border-border/80 py-6">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-4">
                     <UserAvatar name={session.logger.name} avatarUrl={session.logger.avatarUrl} className="size-12" />
                     <div>

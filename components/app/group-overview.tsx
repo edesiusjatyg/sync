@@ -148,18 +148,18 @@ export function GroupOverview({
           <GroupRouteNav groupId={group.groupId} current="overview" />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="border border-border/80 bg-card p-5">
-            <p className="section-kicker">Members</p>
-            <p className="mt-3 text-3xl font-semibold">{memberCount}</p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="border border-border/80 bg-card p-3 sm:p-5">
+            <p className="section-kicker text-[10px] sm:text-xs">Members</p>
+            <p className="mt-1 text-xl font-semibold sm:mt-3 sm:text-3xl">{memberCount}</p>
           </div>
-          <div className="border border-border/80 bg-card p-5">
-            <p className="section-kicker">Capacity</p>
-            <p className="mt-3 text-3xl font-semibold">{group.maxMembers}</p>
+          <div className="border border-border/80 bg-card p-3 sm:p-5">
+            <p className="section-kicker text-[10px] sm:text-xs">Capacity</p>
+            <p className="mt-1 text-xl font-semibold sm:mt-3 sm:text-3xl">{group.maxMembers}</p>
           </div>
-          <div className="border border-border/80 bg-card p-5">
-            <p className="section-kicker">Status</p>
-            <p className="mt-3 text-3xl font-semibold text-primary">{group.isOpen ? "Open" : "Closed"}</p>
+          <div className="border border-border/80 bg-card p-3 sm:p-5">
+            <p className="section-kicker text-[10px] sm:text-xs">Status</p>
+            <p className="mt-1 text-xl font-semibold text-primary sm:mt-3 sm:text-3xl">{group.isOpen ? "Open" : "Closed"}</p>
           </div>
         </div>
       </div>
@@ -275,7 +275,7 @@ export function GroupOverview({
         <CardContent className="grid gap-4 py-6">
           {group.members.map((member) => (
             <div key={member.userId} className="border border-border/80 p-5">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <UserAvatar name={member.name} avatarUrl={member.avatarUrl} />
@@ -294,9 +294,10 @@ export function GroupOverview({
                   </div>
                 </div>
                 {isAdmin && member.userId !== currentUserId ? (
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-col gap-3 md:flex-row md:flex-wrap">
                     <Button
                       variant="outline"
+                      className="w-full md:w-auto"
                       onClick={() => {
                         startTransition(async () => {
                           const result = await transferAdmin({
@@ -318,6 +319,7 @@ export function GroupOverview({
                     </Button>
                     <Button
                       variant="destructive"
+                      className="w-full md:w-auto"
                       onClick={() => {
                         startTransition(async () => {
                           const result = await kickMember({

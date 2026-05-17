@@ -146,7 +146,7 @@ export function DiscoverBoard() {
         />
       ) : (
         <>
-          <div className="relative mx-auto min-h-[36rem] max-w-4xl">
+          <div className="relative mx-auto min-h-[36rem] max-w-4xl mb-56 md:mb-12">
             {previewCandidates
               .slice()
               .reverse()
@@ -209,12 +209,12 @@ export function DiscoverBoard() {
               })}
           </div>
 
-          <div className="flex items-center justify-center gap-4">
-            <Button variant="outline" size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("pass")}>
+          <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-4 border-t border-border/80 bg-background/80 p-4 backdrop-blur md:static md:z-auto md:border-none md:bg-transparent md:p-0">
+            <Button className="flex-1 md:flex-none" variant="outline" size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("pass")}>
               <XIcon />
               Pass
             </Button>
-            <Button size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("like")}>
+            <Button className="flex-1 md:flex-none" size="lg" disabled={!activeCandidate} onClick={() => void handleSwipe("like")}>
               <HeartIcon />
               Like
             </Button>

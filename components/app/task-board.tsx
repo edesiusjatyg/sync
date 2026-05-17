@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type TaskItem = ActionData<typeof getGroupTasks>[number];
 const unassignedValue = "__unassigned__";
@@ -87,6 +88,29 @@ export function TaskBoard({
     ...column,
     tasks: initialTasks.filter((task) => task.status === column.key),
   }));
+
+  const renderColumn = (column: typeof groupedTasks[0]) => (
+    <Card key={column.key} className="surface-panel py-0">
+      <CardHeader className="border-b border-border/80 py-6">
+        <CardTitle>{column.title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 py-6">
+        {column.tasks.length === 0 ? (
+          <p className="text-sm leading-7 text-muted-foreground">No tasks in this column.</p>
+        ) : (
+          column.tasks.map((task) => (
+            <EditableTaskCard
+              key={task.taskId}
+              task={task}
+              members={members}
+              onError={setError}
+              onRefresh={() => router.refresh()}
+            />
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
@@ -192,29 +216,25 @@ export function TaskBoard({
         ) : null}
       </Card>
 
-      <div className="grid gap-5 xl:grid-cols-3">
-        {groupedTasks.map((column) => (
-          <Card key={column.key} className="surface-panel py-0">
-            <CardHeader className="border-b border-border/80 py-6">
-              <CardTitle>{column.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 py-6">
-              {column.tasks.length === 0 ? (
-                <p className="text-sm leading-7 text-muted-foreground">No tasks in this column.</p>
-              ) : (
-                column.tasks.map((task) => (
-                  <EditableTaskCard
-                    key={task.taskId}
-                    task={task}
-                    members={members}
-                    onError={setError}
-                    onRefresh={() => router.refresh()}
-                  />
-                ))
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      <div className="md:hidden">
+        <Tabs defaultValue={columns[0].key} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            {columns.map((column) => (
+              <TabsTrigger key={column.key} value={column.key}>
+                {column.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {groupedTasks.map((column) => (
+            <TabsContent key={column.key} value={column.key}>
+              {renderColumn(column)}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      <div className="hidden md:grid gap-5 md:grid-cols-3">
+        {groupedTasks.map((column) => renderColumn(column))}
       </div>
     </div>
   );

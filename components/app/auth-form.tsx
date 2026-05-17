@@ -130,7 +130,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <Card className="surface-panel w-full max-w-xl py-0">
       <CardHeader className="border-b border-border/80 py-8">
         <p className="section-kicker">{mode === "login" ? "Welcome Back" : "Create Account"}</p>
-        <CardTitle className="text-3xl sm:text-4xl">
+        <CardTitle className="text-3xl md:text-5xl">
           {mode === "login" ? "Sign in to continue matching." : "Start building your study profile."}
         </CardTitle>
         <CardDescription>

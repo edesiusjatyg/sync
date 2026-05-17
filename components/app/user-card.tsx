@@ -48,12 +48,12 @@ export function UserCard({
   return (
     <article className={cn("surface-panel surface-grid overflow-hidden", className)} style={style}>
       <div className="space-y-8 p-8">
-        <div className="flex items-start justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <UserAvatar name={name} avatarUrl={avatarUrl} className="size-16" />
-            <div>
+        <div className="flex flex-col items-start justify-between gap-5 sm:flex-row">
+          <div className="flex items-center gap-4 min-w-0">
+            <UserAvatar name={name} avatarUrl={avatarUrl} className="size-16 shrink-0" />
+            <div className="min-w-0">
               <p className="section-kicker">Candidate</p>
-              <h2 className="font-heading text-3xl font-bold uppercase">{name}</h2>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold uppercase truncate">{name}</h2>
             </div>
           </div>
           <div className="border border-primary/20 bg-primary/10 px-4 py-3 text-right">
