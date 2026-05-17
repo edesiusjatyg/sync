@@ -12,6 +12,7 @@ export default defineConfig({
     env: process.env,
     fileParallelism: false,
     testTimeout: 30000,
+    // @ts-ignore - poolOptions is valid in vitest, but typescript complains
     poolOptions: {
       threads: {
         singleThread: true,
