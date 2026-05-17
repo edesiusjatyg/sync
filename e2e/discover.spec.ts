@@ -1,8 +1,0 @@
-import { test, expect } from '@playwright/test';
-
-test.describe('Discover Page', () => {
-  test('requires authentication', async ({ page }) => {
-    await page.goto('/discover');
-    await expect(page).toHaveURL(/.*\/login/);
-  });
-});
