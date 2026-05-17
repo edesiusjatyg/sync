@@ -14,6 +14,15 @@
 /coverage
 /tests
 /e2e
+vitest.config.ts
+vitest.setup.ts
+vitest.workspace.ts
+playwright.config.ts
+playwright-report/
+test-results/
+.env.test
+*.out
+test-*.ts
 
 # next.js
 /.next/
