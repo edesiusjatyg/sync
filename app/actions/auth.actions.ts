@@ -5,7 +5,8 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
-import { signIn } from "@/lib/auth";
+import { encode } from "next-auth/jwt";
+import { cookies } from "next/headers";
 import {
   getActionErrorMessage,
   logActionError,
@@ -37,6 +38,9 @@ export async function registerUser(
         },
         select: {
           id: true,
+          email: true,
+          name: true,
+          role: true,
         },
       });
     } catch (error) {
@@ -46,10 +50,27 @@ export async function registerUser(
       throw error;
     }
 
-    await signIn("credentials", {
-      email: normalizedEmail,
-      password,
-      redirect: false,
+    const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://") || process.env.NODE_ENV === "production";
+    const cookieName = useSecureCookies ? "__Secure-authjs.session-token" : "authjs.session-token";
+
+    const sessionToken = await encode({
+      salt: cookieName,
+      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "",
+      token: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        hasCompletedOnboarding: false,
+      },
+    });
+
+    (await cookies()).set(cookieName, sessionToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: useSecureCookies,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     return {
