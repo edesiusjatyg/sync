@@ -26,7 +26,7 @@ export function UserAvatar({ name, avatarUrl, className }: UserAvatarProps) {
       )}
     >
       {avatarUrl ? (
-        <Image src={avatarUrl} alt={name} fill sizes="64px" className="object-cover" />
+        <Image unoptimized src={avatarUrl} alt={name} fill sizes="64px" className="object-cover" />
       ) : (
         <span>{getInitials(name)}</span>
       )}
