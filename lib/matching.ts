@@ -63,7 +63,7 @@ export function computeCompatibilityScore(userVector: number[], candidateVector:
   const scheduleScore = jaccardBinaryBlock(userSchedule, candidateSchedule);
   const goalsScore = jaccardBinaryBlock(userGoals, candidateGoals);
 
-  return Number((0.5 * skillScore + 0.3 * scheduleScore + 0.2 * goalsScore).toFixed(4));
+  return Number((0.5 * (1 - skillScore) + 0.3 * scheduleScore + 0.2 * goalsScore).toFixed(4));
 }
 
 export function rankCandidates(
